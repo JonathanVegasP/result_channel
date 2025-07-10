@@ -89,15 +89,31 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *, void *) {
     g_javaVm = nullptr;
 }
 
-FFI_PLUGIN_EXPORT void free_c_mem(void *pointer) {
+FFI_PLUGIN_EXPORT Result *
+flutter_result_channel_new_result(Status status, JNIEnv *env, jbyteArray data) {
+    auto result = reinterpret_cast<Result *>(malloc(sizeof(Result)));
+    jsize length = env->GetArrayLength(data);
+    auto rawBytes = reinterpret_cast<jbyte *>(env->GetPrimitiveArrayCritical(data, nullptr));
+    auto newValues = reinterpret_cast<uint8_t *>(malloc(length));
+
+    memcpy(newValues, rawBytes, length);
+    env->ReleasePrimitiveArrayCritical(data, rawBytes, JNI_ABORT);
+
+    result->status = status;
+    result->data = newValues;
+    result->size = length;
+
+    return result;
+}
+
+FFI_PLUGIN_EXPORT void flutter_result_channel_free_pointer(void *pointer) {
     if (!pointer) return;
 
     free(pointer);
 }
 
 JNIEXPORT void JNICALL
-Java_dev_jonathanvegasp_result_1channel_ResultChannel_success(JNIEnv *env,
-                                                              jclass ,
+Java_dev_jonathanvegasp_result_1channel_ResultChannel_success(JNIEnv *env, jclass,
                                                               jlong callback_ptr,
                                                               jbyteArray value) {
     JNILocalRefGuard<jbyteArray> localRefGuard(env, value);
@@ -108,17 +124,7 @@ Java_dev_jonathanvegasp_result_1channel_ResultChannel_success(JNIEnv *env,
         return;
     }
 
-    jsize length = env->GetArrayLength(value);
-
-    jbyte *rawBytes = env->GetByteArrayElements(value, nullptr);
-
-    auto *newValues = reinterpret_cast<uint8_t *>(malloc(length));
-
-    memcpy(newValues, rawBytes, length);
-
-    env->ReleaseByteArrayElements(value, rawBytes, JNI_ABORT);
-
-    callback(StatusOk, newValues, length);
+    callback(flutter_result_channel_new_result(StatusOk, env, value));
 }
 
 JNIEXPORT void JNICALL
@@ -133,21 +139,12 @@ Java_dev_jonathanvegasp_result_1channel_ResultChannel_failure(JNIEnv *env, jclas
         return;
     }
 
-    jsize length = env->GetArrayLength(value);
-
-    jbyte *bytes = env->GetByteArrayElements(value, nullptr);
-
-    auto *newValues = reinterpret_cast<uint8_t *>(malloc(length));
-
-    memcpy(newValues, bytes, length);
-
-    env->ReleaseByteArrayElements(value, bytes, JNI_ABORT);
-
-    callback(StatusError, newValues, length);
+    callback(flutter_result_channel_new_result(StatusError, env, value));
 }
 }
 
-FFI_PLUGIN_EXPORT JNILocalRefGuard<jobject> flutter_result_channel_create_channel(JNIEnv *env, Callback callback) {
+FFI_PLUGIN_EXPORT JNILocalRefGuard<jobject>
+flutter_result_channel_create_channel(JNIEnv *env, Callback callback) {
     if (!env || !g_resultChannel) {
         return JNILocalRefGuard<jobject>(nullptr, nullptr);
     }

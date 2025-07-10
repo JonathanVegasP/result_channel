@@ -13,6 +13,47 @@ final _lib = (() {
   };
 })();
 
+final class ResultNative extends Struct {
+  @Uint8()
+  external int status;
+
+  external Pointer<Uint8> data;
+
+  @Int32()
+  external int size;
+}
+
+extension ResultNativeExt on Pointer<ResultNative> {
+  ResultDart toResultDart() {
+    final value = ref;
+    final data = ref.data;
+    ResultDart resultDart;
+
+    try {
+      final bytes = data.asTypedList(value.size);
+      final result = ResultChannel.serializer.deserialize(bytes);
+      resultDart = ResultDart(
+        status: ResultStatus.values[value.status],
+        data: result,
+      );
+    } finally {
+      ResultChannel.free(data.cast());
+      ResultChannel.free(cast());
+    }
+
+    return resultDart;
+  }
+}
+
+enum ResultStatus { ok, error }
+
+final class ResultDart {
+  final ResultStatus status;
+  final Object? data;
+
+  const ResultDart({required this.status, required this.data});
+}
+
 typedef ResultChannelCallbackDart = void Function(int, Pointer<Uint8>, int);
 
 typedef ResultChannelCallbackNative =
@@ -22,6 +63,8 @@ abstract final class ResultChannel {
   static const serializer = BinarySerializer();
 
   static final void Function(Pointer<Void>) free = _lib
-      .lookup<NativeFunction<Void Function(Pointer<Void>)>>('free_c_mem')
+      .lookup<NativeFunction<Void Function(Pointer<Void>)>>(
+        'flutter_result_channel_free_pointer',
+      )
       .asFunction<void Function(Pointer<Void>)>();
 }

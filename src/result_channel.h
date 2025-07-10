@@ -1,5 +1,6 @@
 #ifndef RESULT_CHANNEL_H
 #define RESULT_CHANNEL_H
+
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
@@ -79,11 +80,21 @@ typedef enum {
     StatusError = 1
 } Status;
 
-typedef void (*Callback)(Status, const uint8_t *, int32_t);
+typedef struct {
+    Status status;
+    uint8_t *data;
+    int32_t size;
+} Result;
 
-FFI_PLUGIN_EXPORT void free_c_mem(void *pointer);
+typedef void (*Callback)(Result *);
+
+FFI_PLUGIN_EXPORT Result *
+flutter_result_channel_new_result(Status status, JNIEnv *env, jbyteArray data);
+
+FFI_PLUGIN_EXPORT void flutter_result_channel_free_pointer(void *pointer);
 }
 
-FFI_PLUGIN_EXPORT JNILocalRefGuard<jobject> flutter_result_channel_create_channel(JNIEnv *env, Callback callback);
+FFI_PLUGIN_EXPORT JNILocalRefGuard<jobject>
+flutter_result_channel_create_channel(JNIEnv *env, Callback callback);
 
 #endif

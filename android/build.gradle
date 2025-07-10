@@ -54,7 +54,7 @@ android {
         minSdk = 21
         externalNativeBuild {
             cmake {
-                arguments "-Wl,--gc-sections", "-Wl,--strip-debug"
+                arguments "-Wl,--gc-sections", "-Wl,--strip-debug", "-DANDROID_STL=c++_shared"
                 cppFlags "-O3", "-flto"
             }
         }
