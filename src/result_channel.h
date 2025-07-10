@@ -81,10 +81,6 @@ typedef enum {
 
 typedef void (*Callback)(Status, const uint8_t *, int32_t);
 
-FFI_PLUGIN_EXPORT const char *flutter_result_channel_current_version();
-
-FFI_PLUGIN_EXPORT void flutter_result_channel_current_version_async(Callback callback);
-
 FFI_PLUGIN_EXPORT void free_c_mem(void *pointer);
 }
 

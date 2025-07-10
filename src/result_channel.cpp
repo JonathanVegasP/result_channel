@@ -147,7 +147,7 @@ Java_dev_jonathanvegasp_result_1channel_ResultChannel_failure(JNIEnv *env, jclas
 }
 }
 
-JNILocalRefGuard<jobject> flutter_result_channel_create_channel(JNIEnv *env, Callback callback) {
+FFI_PLUGIN_EXPORT JNILocalRefGuard<jobject> flutter_result_channel_create_channel(JNIEnv *env, Callback callback) {
     if (!env || !g_resultChannel) {
         return JNILocalRefGuard<jobject>(nullptr, nullptr);
     }
