@@ -5,7 +5,7 @@
 #include <cstring>
 #include <jni.h>
 
-#define FFI_PLUGIN_EXPORT
+#define FFI_PLUGIN_EXPORT __attribute__((visibility("default")))
 
 struct JNIEnvAttachGuard {
 private:
@@ -88,6 +88,6 @@ FFI_PLUGIN_EXPORT void flutter_result_channel_current_version_async(Callback cal
 FFI_PLUGIN_EXPORT void free_c_mem(void *pointer);
 }
 
-JNILocalRefGuard<jobject> flutter_result_channel_create_channel(JNIEnv *env, Callback callback);
+FFI_PLUGIN_EXPORT JNILocalRefGuard<jobject> flutter_result_channel_create_channel(JNIEnv *env, Callback callback);
 
 #endif
