@@ -1,4 +1,4 @@
-#include "result_channel.h"
+#include "include/result_channel.h"
 
 static JavaVM *g_javaVm = nullptr;
 static jclass g_resultChannel = nullptr;
