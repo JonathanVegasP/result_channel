@@ -64,7 +64,7 @@ class BinaryWriter implements Writer {
   @override
   void putByte(int value) {
     _growBufferIfNeeded(1);
-    _buffer[_offset++] = value & 0xFF;
+    _byteData.setUint8(_offset++, value);
   }
 
   @pragma("vm:prefer-inline")
@@ -117,52 +117,52 @@ class BinaryWriter implements Writer {
   void putUint8List(Uint8List value) {
     final size = value.length;
     _growBufferIfNeeded(size);
-    _buffer.setAll(_offset, value);
+    _buffer.setRange(_offset, size, value);
     _offset += size;
   }
 
   @pragma("vm:prefer-inline")
   @override
   void putInt32List(Int32List value) {
-    _addPaddingIfNeeded(4);
-    _growBufferIfNeeded(value.length * 4);
-    for (int i = 0; i < value.length; i++) {
-      _byteData.setInt32(_offset + i * 4, value[i], _ORDER);
-    }
-    _offset += value.length * 4;
+    _addPaddingIfNeeded(Int32List.bytesPerElement);
+    final bytes = value.buffer.asUint8List(
+      value.offsetInBytes,
+      value.lengthInBytes,
+    );
+    putUint8List(bytes);
   }
 
   @pragma("vm:prefer-inline")
   @override
   void putInt64List(Int64List value) {
-    _addPaddingIfNeeded(8);
-    _growBufferIfNeeded(value.length * 8);
-    for (int i = 0; i < value.length; i++) {
-      _byteData.setInt64(_offset + i * 8, value[i], _ORDER);
-    }
-    _offset += value.length * 8;
+    _addPaddingIfNeeded(Int64List.bytesPerElement);
+    final bytes = value.buffer.asUint8List(
+      value.offsetInBytes,
+      value.lengthInBytes,
+    );
+    putUint8List(bytes);
   }
 
   @pragma("vm:prefer-inline")
   @override
   void putFloat32List(Float32List value) {
-    _addPaddingIfNeeded(4);
-    _growBufferIfNeeded(value.length * 4);
-    for (int i = 0; i < value.length; i++) {
-      _byteData.setFloat32(_offset + i * 4, value[i], _ORDER);
-    }
-    _offset += value.length * 4;
+    _addPaddingIfNeeded(Float32List.bytesPerElement);
+    final bytes = value.buffer.asUint8List(
+      value.offsetInBytes,
+      value.lengthInBytes,
+    );
+    putUint8List(bytes);
   }
 
   @pragma("vm:prefer-inline")
   @override
   void putFloat64List(Float64List value) {
-    _addPaddingIfNeeded(8);
-    _growBufferIfNeeded(value.length * 8);
-    for (int i = 0; i < value.length; i++) {
-      _byteData.setFloat64(_offset + i * 8, value[i], _ORDER);
-    }
-    _offset += value.length * 8;
+    _addPaddingIfNeeded(Float64List.bytesPerElement);
+    final bytes = value.buffer.asUint8List(
+      value.offsetInBytes,
+      value.lengthInBytes,
+    );
+    putUint8List(bytes);
   }
 
   @pragma("vm:prefer-inline")

@@ -24,6 +24,14 @@ final class ResultNative extends Struct {
 }
 
 extension ResultNativeExt on Pointer<ResultNative> {
+  @pragma("vm:prefer-inline")
+  ResultDart? toNullableResultDart() {
+    if(this == nullptr) return null;
+
+    return toResultDart();
+  }
+
+  @pragma("vm:prefer-inline")
   ResultDart toResultDart() {
     final value = ref;
     final data = ref.data;

@@ -184,7 +184,7 @@ class BinarySerializer implements Serializer<Uint8List> {
         final size = _readSize(reader);
         final list = List<Object?>.filled(size, null);
         for (int i = 0; i < size; i++) {
-          list[i] = _readSize(reader);
+          list[i] = _read(reader);
         }
         return list;
       case _SET:

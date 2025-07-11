@@ -91,39 +91,39 @@ class BinaryWriter : Writer {
     }
 
     override fun intArray(value: IntArray) {
+        val size = value.size * Int.SIZE_BYTES;
         addPaddingIfNeeded(Int.SIZE_BYTES)
-        growBufferIfNeeded(value.size * Int.SIZE_BYTES)
+        growBufferIfNeeded(size)
         val buffer = buffer
-        value.forEach {
-            buffer.putInt(it)
-        }
+        buffer.asIntBuffer().put(value)
+        buffer.position(buffer.position() + size)
     }
 
     override fun longArray(value: LongArray) {
+        val size = value.size * Long.SIZE_BYTES;
         addPaddingIfNeeded(Long.SIZE_BYTES)
-        growBufferIfNeeded(value.size * Long.SIZE_BYTES)
+        growBufferIfNeeded(size)
         val buffer = buffer
-        value.forEach {
-            buffer.putLong(it)
-        }
+        buffer.asLongBuffer().put(value)
+        buffer.position(buffer.position() + size)
     }
 
     override fun floatArray(value: FloatArray) {
+        val size = value.size * Float.SIZE_BYTES
         addPaddingIfNeeded(Float.SIZE_BYTES)
-        growBufferIfNeeded(value.size * Float.SIZE_BYTES)
+        growBufferIfNeeded(size)
         val buffer = buffer
-        value.forEach {
-            buffer.putFloat(it)
-        }
+        buffer.asFloatBuffer().put(value)
+        buffer.position(buffer.position() + size)
     }
 
     override fun doubleArray(value: DoubleArray) {
+        val size = Double.SIZE_BYTES * value.size
         addPaddingIfNeeded(Double.SIZE_BYTES)
-        growBufferIfNeeded(Double.SIZE_BYTES * value.size)
+        growBufferIfNeeded(size)
         val buffer = buffer
-        value.forEach {
-            buffer.putDouble(it)
-        }
+        buffer.asDoubleBuffer().put(value)
+        buffer.position(buffer.position() + size)
     }
 
     override fun toByteArray(): ByteArray {

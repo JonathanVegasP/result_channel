@@ -41,14 +41,8 @@ android {
     }
 
     prefab {
-        mylibrary {
+        create("result_channel") {
             headers "../src/include"
-        }
-    }
-
-    packagingOptions {
-        jniLibs {
-            excludes += ['**/libmylibrary.so', '**/libc++_shared.so']
         }
     }
 
@@ -71,8 +65,14 @@ android {
         externalNativeBuild {
             cmake {
                 arguments "-Wl,--gc-sections", "-Wl,--strip-debug", "-DANDROID_STL=c++_shared"
-                cppFlags "-O3", "-flto"
+                cppFlags "-O3", "-flto", "-ffunction-sections", "-fdata-sections"
             }
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            excludes += ['**/libresult_channel.so', '**/libc++_shared.so']
         }
     }
 

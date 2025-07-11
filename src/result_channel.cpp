@@ -1,11 +1,9 @@
-#include "include/result_channel.h"
+#include "result_channel.h"
 
 static JavaVM *g_javaVm = nullptr;
 static jclass g_resultChannel = nullptr;
 
 JNIEnvAttachGuard::JNIEnvAttachGuard(JavaVM *javaVm) : vm(javaVm), env(nullptr), attached(false) {
-    if (!vm) return;
-
     jint status = vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
 
     if (status == JNI_EDETACHED) {
@@ -54,22 +52,126 @@ JNIEnvAttachGuard &JNIEnvAttachGuard::operator=(JNIEnvAttachGuard &&other) noexc
     return *this;
 }
 
+JNILocalRefGuard::JNILocalRefGuard(JNIEnv *jniEnv, jobject jniRef) : env(jniEnv), ref(jniRef) {}
+
+JNILocalRefGuard::~JNILocalRefGuard() {
+    if (ref && env) {
+        env->DeleteLocalRef(ref);
+    }
+}
+
+JNILocalRefGuard::operator jobject() const { return ref; }
+
+jobject JNILocalRefGuard::get() const { return ref; }
+
+JNILocalRefGuard::JNILocalRefGuard(JNILocalRefGuard &&other) noexcept : env(other.env), ref(other.ref) {
+    other.env = nullptr;
+    other.ref = nullptr;
+}
+
+JNILocalRefGuard &JNILocalRefGuard::operator=(JNILocalRefGuard &&other) noexcept {
+    if (this != &other) {
+        if (ref && env) {
+            env->DeleteLocalRef(ref);
+        }
+
+        env = other.env;
+        ref = other.ref;
+        other.env = nullptr;
+        other.ref = nullptr;
+    }
+
+    return *this;
+}
+
+ResultChannelInstanceGuard::ResultChannelInstanceGuard(JNIEnv *jniEnv, Callback callback) : env(
+        jniEnv), instance(nullptr) {
+    auto callback_ptr = reinterpret_cast<uint64_t>(callback);
+    jmethodID jmethodID1 = jniEnv->GetMethodID(g_resultChannel, "<init>", "(J)V");
+    instance = jniEnv->NewObject(g_resultChannel, jmethodID1, callback_ptr);
+}
+
+ResultChannelInstanceGuard::~ResultChannelInstanceGuard() {
+    if (instance && env) {
+        env->DeleteLocalRef(instance);
+    }
+}
+
+ResultChannelInstanceGuard::operator jobject() const { return instance; }
+
+jobject ResultChannelInstanceGuard::get() const { return instance; }
+
+ResultChannelInstanceGuard::ResultChannelInstanceGuard(ResultChannelInstanceGuard &&other) noexcept
+        : env(other.env), instance(other.instance) {
+    other.env = nullptr;
+    other.instance = nullptr;
+}
+
+ResultChannelInstanceGuard &
+ResultChannelInstanceGuard::operator=(ResultChannelInstanceGuard &&other) noexcept {
+    if (this != &other) {
+        if (instance && env) {
+            env->DeleteLocalRef(instance);
+        }
+
+        env = other.env;
+        instance = other.instance;
+        other.env = nullptr;
+        other.instance = nullptr;
+    }
+    return *this;
+}
+
+JavaByteArrayGuard::JavaByteArrayGuard(Status status, JNIEnv *env, jbyteArray jbyteArray1) : result(
+        nullptr) {
+    auto instance = reinterpret_cast<Result *>(malloc(sizeof(Result)));
+    jsize length = env->GetArrayLength(jbyteArray1);
+    auto javaBytes = reinterpret_cast<jbyte *>(env->GetPrimitiveArrayCritical(jbyteArray1,
+                                                                              nullptr));
+    auto data = reinterpret_cast<uint8_t *>(malloc(length));
+
+    memcpy(data, javaBytes, length);
+    env->ReleasePrimitiveArrayCritical(jbyteArray1, javaBytes, JNI_ABORT);
+
+    instance->status = status;
+    instance->data = data;
+    instance->size = length;
+    result = instance;
+
+    env->DeleteLocalRef(jbyteArray1);
+}
+
+JavaByteArrayGuard::operator Result *() const { return result; }
+
+Result *JavaByteArrayGuard::get() const { return result; }
+
+JavaByteArrayGuard::JavaByteArrayGuard(JavaByteArrayGuard &&other) noexcept: result(other.result) {
+    other.result = nullptr;
+}
+
+JavaByteArrayGuard &JavaByteArrayGuard::operator=(JavaByteArrayGuard &&other) noexcept {
+    if (this != &other) {
+        if (result) {
+            free(result);
+        }
+
+        result = other.result;
+        other.result = nullptr;
+    }
+
+    return *this;
+}
+
 extern "C" {
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
     JNIEnvAttachGuard jniEnvAttachGuard(vm);
     JNIEnv *env = jniEnvAttachGuard;
 
-    if (!env) {
-        return JNI_EVERSION;
-    }
-
-    JNILocalRefGuard<jclass> localRefGuard(env, env->FindClass(
+    JNILocalRefGuard localRefGuard(env, env->FindClass(
             "dev/jonathanvegasp/result_channel/ResultChannel"));
 
-    jclass resultChannel = localRefGuard;
-
-    g_resultChannel = static_cast<jclass>(env->NewGlobalRef(resultChannel));
-
+    jobject resultChannel = localRefGuard;
+    g_resultChannel = reinterpret_cast<jclass>(env->NewGlobalRef(resultChannel));
     g_javaVm = vm;
 
     return JNI_VERSION_1_6;
@@ -80,6 +182,7 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *, void *) {
     JNIEnv *env = jniEnvAttachGuard;
 
     if (!env) {
+        g_resultChannel = nullptr;
         g_javaVm = nullptr;
         return;
     }
@@ -87,23 +190,6 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *, void *) {
     env->DeleteGlobalRef(g_resultChannel);
     g_resultChannel = nullptr;
     g_javaVm = nullptr;
-}
-
-FFI_PLUGIN_EXPORT Result *
-flutter_result_channel_new_result(Status status, JNIEnv *env, jbyteArray data) {
-    auto result = reinterpret_cast<Result *>(malloc(sizeof(Result)));
-    jsize length = env->GetArrayLength(data);
-    auto rawBytes = reinterpret_cast<jbyte *>(env->GetPrimitiveArrayCritical(data, nullptr));
-    auto newValues = reinterpret_cast<uint8_t *>(malloc(length));
-
-    memcpy(newValues, rawBytes, length);
-    env->ReleasePrimitiveArrayCritical(data, rawBytes, JNI_ABORT);
-
-    result->status = status;
-    result->data = newValues;
-    result->size = length;
-
-    return result;
 }
 
 FFI_PLUGIN_EXPORT void flutter_result_channel_free_pointer(void *pointer) {
@@ -116,42 +202,17 @@ JNIEXPORT void JNICALL
 Java_dev_jonathanvegasp_result_1channel_ResultChannel_success(JNIEnv *env, jclass,
                                                               jlong callback_ptr,
                                                               jbyteArray value) {
-    JNILocalRefGuard<jbyteArray> localRefGuard(env, value);
-
     auto callback = reinterpret_cast<Callback>(callback_ptr);
 
-    if (!callback) {
-        return;
-    }
-
-    callback(flutter_result_channel_new_result(StatusOk, env, value));
+    callback(JavaByteArrayGuard(StatusOk, env, value));
 }
 
 JNIEXPORT void JNICALL
 Java_dev_jonathanvegasp_result_1channel_ResultChannel_failure(JNIEnv *env, jclass,
                                                               jlong callback_ptr,
                                                               jbyteArray value) {
-    JNILocalRefGuard<jbyteArray> localRefGuard(env, value);
-
     auto callback = reinterpret_cast<Callback>(callback_ptr);
 
-    if (!callback) {
-        return;
-    }
-
-    callback(flutter_result_channel_new_result(StatusError, env, value));
+    callback(JavaByteArrayGuard(StatusError, env, value));
 }
-}
-
-FFI_PLUGIN_EXPORT JNILocalRefGuard<jobject>
-flutter_result_channel_create_channel(JNIEnv *env, Callback callback) {
-    if (!env || !g_resultChannel) {
-        return JNILocalRefGuard<jobject>(nullptr, nullptr);
-    }
-
-    auto callback_ptr = reinterpret_cast<uint64_t>(callback);
-    jmethodID jmethodID1 = env->GetMethodID(g_resultChannel, "<init>", "(J)V");
-
-    return JNILocalRefGuard<jobject>(env,
-                                     env->NewObject(g_resultChannel, jmethodID1, callback_ptr));
 }

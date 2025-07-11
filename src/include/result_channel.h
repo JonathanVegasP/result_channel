@@ -31,47 +31,26 @@ public:
     JNIEnvAttachGuard &operator=(JNIEnvAttachGuard &&other) noexcept;
 };
 
-template<typename T>
 struct JNILocalRefGuard {
 private:
     JNIEnv *env;
-    T ref;
+    jobject ref;
 public:
-    explicit JNILocalRefGuard(JNIEnv *jniEnv, T jniRef) : env(jniEnv), ref(jniRef) {}
+    explicit JNILocalRefGuard(JNIEnv *jniEnv, jobject jniRef);
 
-    ~JNILocalRefGuard() {
-        if (ref && env) {
-            env->DeleteLocalRef(ref);
-        }
-    }
+    ~JNILocalRefGuard();
 
-    operator T() const { return ref; }
+    operator jobject() const;
 
-    [[nodiscard]] T get() const { return ref; }
+    [[nodiscard]] jobject get() const;
 
     JNILocalRefGuard(const JNILocalRefGuard &) = delete;
 
     JNILocalRefGuard &operator=(const JNILocalRefGuard &) = default;
 
-    JNILocalRefGuard(JNILocalRefGuard &&other) noexcept: env(other.env), ref(other.ref) {
-        other.env = nullptr;
-        other.ref = nullptr;
-    }
+    JNILocalRefGuard(JNILocalRefGuard &&other) noexcept;
 
-    JNILocalRefGuard &operator=(JNILocalRefGuard &&other) noexcept {
-        if (this != &other) {
-            if (ref && env) {
-                env->DeleteLocalRef(ref);
-            }
-
-            env = other.env;
-            ref = other.ref;
-            other.env = nullptr;
-            other.ref = nullptr;
-        }
-
-        return *this;
-    }
+    JNILocalRefGuard &operator=(JNILocalRefGuard &&other) noexcept;
 };
 
 extern "C" {
@@ -88,13 +67,41 @@ typedef struct {
 
 typedef void (*Callback)(Result *);
 
-FFI_PLUGIN_EXPORT Result *
-flutter_result_channel_new_result(Status status, JNIEnv *env, jbyteArray data);
-
 FFI_PLUGIN_EXPORT void flutter_result_channel_free_pointer(void *pointer);
 }
 
-FFI_PLUGIN_EXPORT JNILocalRefGuard<jobject>
-flutter_result_channel_create_channel(JNIEnv *env, Callback callback);
+struct ResultChannelInstanceGuard {
+private:
+    JNIEnv *env;
+    jobject instance;
+public:
+    explicit ResultChannelInstanceGuard(JNIEnv *env, Callback callback);
+    ~ResultChannelInstanceGuard();
+
+    operator jobject() const;
+    [[nodiscard]] jobject get() const;
+
+    ResultChannelInstanceGuard(const ResultChannelInstanceGuard&) = delete;
+    ResultChannelInstanceGuard &operator=(const ResultChannelInstanceGuard&) = delete;
+
+    ResultChannelInstanceGuard(ResultChannelInstanceGuard&& other) noexcept;
+    ResultChannelInstanceGuard &operator=(ResultChannelInstanceGuard&& other) noexcept;
+};
+
+struct JavaByteArrayGuard {
+private:
+    Result * result;
+public:
+    explicit JavaByteArrayGuard(Status status, JNIEnv *env, jbyteArray jbyteArray1);
+
+    operator Result *() const;
+    [[nodiscard]] Result *get() const;
+
+    JavaByteArrayGuard(const JavaByteArrayGuard&) = delete;
+    JavaByteArrayGuard &operator=(const JavaByteArrayGuard&) = default;
+
+    JavaByteArrayGuard(JavaByteArrayGuard&& other) noexcept;
+    JavaByteArrayGuard &operator=(JavaByteArrayGuard&& other) noexcept;
+};
 
 #endif
