@@ -6,7 +6,7 @@
 #include <cstring>
 #include <jni.h>
 
-#define FFI_PLUGIN_EXPORT __attribute__((visibility("default")))
+#define FFI_PLUGIN_EXPORT
 
 struct JNIEnvAttachGuard {
 private:

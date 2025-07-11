@@ -30,6 +30,10 @@ android {
     compileSdk = 35
     ndkVersion = "27.2.12479018"
 
+    ext {
+        result_channel_include = "${projectDir}/../src"
+    }
+
     externalNativeBuild {
         cmake {
             path = "../src/CMakeLists.txt"
