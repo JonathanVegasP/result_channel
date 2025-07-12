@@ -62,10 +62,23 @@ android {
 
     defaultConfig {
         minSdk = 21
-        externalNativeBuild {
-            cmake {
-                arguments "-Wl,--gc-sections", "-Wl,--strip-debug", "-DANDROID_STL=c++_shared"
-                cppFlags "-O3", "-flto", "-ffunction-sections", "-fdata-sections"
+    }
+
+    buildTypes {
+        debug {
+            externalNativeBuild {
+                cmake {
+                    arguments "-DANDROID_STL=c++_shared"
+                }
+            }
+        }
+
+        release {
+            externalNativeBuild {
+                cmake {
+                    arguments "-Wl,--gc-sections", "-Wl,--strip-debug", "-DANDROID_STL=c++_shared"
+                    cppFlags "-O3", "-flto", "-ffunction-sections", "-fdata-sections"
+                }
             }
         }
     }
