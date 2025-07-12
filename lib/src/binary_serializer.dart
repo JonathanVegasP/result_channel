@@ -29,7 +29,7 @@ class BinarySerializer implements Serializer<Uint8List> {
   static const int _MAX_CHAR = 0xFF;
   static const int _MAX_CHAR_VALUE = 0xFFFF;
 
-  @pragma("vm:prefer-inline")
+  @pragma('vm:prefer-inline')
   static void _writeSize(Writer writer, int value) {
     if (value < _MAX_BYTES) {
       writer.putByte(value);
@@ -42,7 +42,7 @@ class BinarySerializer implements Serializer<Uint8List> {
     }
   }
 
-  @pragma("vm:prefer-inline")
+  @pragma('vm:prefer-inline')
   static void _append(Writer writer, dynamic value) {
     if (value == null) {
       writer.putByte(_NULL);
@@ -140,7 +140,7 @@ class BinarySerializer implements Serializer<Uint8List> {
     }
   }
 
-  @pragma("vm:prefer-inline")
+  @pragma('vm:prefer-inline')
   static int _readSize(BinaryReader reader) {
     final typeByte = reader.readByte();
     if (typeByte < _MAX_BYTES) {
@@ -152,7 +152,7 @@ class BinarySerializer implements Serializer<Uint8List> {
     }
   }
 
-  @pragma("vm:prefer-inline")
+  @pragma('vm:prefer-inline')
   static Object? _read(BinaryReader reader) {
     final type = reader.readByte();
     switch (type) {

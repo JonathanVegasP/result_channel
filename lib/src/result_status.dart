@@ -1,0 +1,1 @@
+enum ResultStatus { ok, error }

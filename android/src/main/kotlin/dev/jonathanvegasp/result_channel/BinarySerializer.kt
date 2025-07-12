@@ -98,6 +98,14 @@ class BinarySerializer : Serializer<ByteArray> {
                     writer.doubleArray(value)
                 }
 
+                is Array<*> -> {
+                    writer.byte(LIST)
+                    writeSize(writer, value.size)
+                    value.forEach {
+                        append(writer, it)
+                    }
+                }
+
                 is List<*> -> {
                     writer.byte(LIST)
                     writeSize(writer, value.size)

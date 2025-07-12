@@ -137,8 +137,6 @@ JavaByteArrayGuard::JavaByteArrayGuard(Status status, JNIEnv *env, jbyteArray jb
     instance->data = data;
     instance->size = length;
     result = instance;
-
-    env->DeleteLocalRef(jbyteArray1);
 }
 
 JavaByteArrayGuard::operator Result *() const { return result; }

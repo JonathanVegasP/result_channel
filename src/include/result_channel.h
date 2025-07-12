@@ -1,9 +1,9 @@
 #ifndef RESULT_CHANNEL_H
 #define RESULT_CHANNEL_H
 
-#include <cstdlib>
-#include <cstdint>
-#include <cstring>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 #include <jni.h>
 
 #define FFI_PLUGIN_EXPORT

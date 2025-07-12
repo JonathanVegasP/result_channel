@@ -19,7 +19,7 @@ class ResultChannel @Keep constructor(private val callbackPtr: Long) {
         success(callbackPtr, serializer.serialize(value))
     }
 
-    fun failure(value: ByteArray) {
+    fun failure(value: Any?) {
         failure(callbackPtr, serializer.serialize(value))
     }
 }
