@@ -6,9 +6,10 @@
 #include <string.h>
 #include <jni.h>
 
-#define FFI_PLUGIN_EXPORT
+#define FFI_PLUGIN_EXPORT __attribute__((visibility("default")))
 
-struct JNIEnvAttachGuard {
+extern "C" {
+struct FFI_PLUGIN_EXPORT JNIEnvAttachGuard {
 private:
     JavaVM *vm;
     JNIEnv *env;
@@ -31,7 +32,7 @@ public:
     JNIEnvAttachGuard &operator=(JNIEnvAttachGuard &&other) noexcept;
 };
 
-struct JNILocalRefGuard {
+struct FFI_PLUGIN_EXPORT JNILocalRefGuard {
 private:
     JNIEnv *env;
     jobject ref;
@@ -53,7 +54,6 @@ public:
     JNILocalRefGuard &operator=(JNILocalRefGuard &&other) noexcept;
 };
 
-extern "C" {
 typedef enum {
     StatusOk = 0,
     StatusError = 1
@@ -67,41 +67,48 @@ typedef struct {
 
 typedef void (*Callback)(Result *);
 
-FFI_PLUGIN_EXPORT void flutter_result_channel_free_pointer(void *pointer);
-}
-
-struct ResultChannelInstanceGuard {
+struct FFI_PLUGIN_EXPORT ResultChannelInstanceGuard {
 private:
     JNIEnv *env;
     jobject instance;
 public:
     explicit ResultChannelInstanceGuard(JNIEnv *env, Callback callback);
+
     ~ResultChannelInstanceGuard();
 
     operator jobject() const;
+
     [[nodiscard]] jobject get() const;
 
-    ResultChannelInstanceGuard(const ResultChannelInstanceGuard&) = delete;
-    ResultChannelInstanceGuard &operator=(const ResultChannelInstanceGuard&) = delete;
+    ResultChannelInstanceGuard(const ResultChannelInstanceGuard &) = delete;
 
-    ResultChannelInstanceGuard(ResultChannelInstanceGuard&& other) noexcept;
-    ResultChannelInstanceGuard &operator=(ResultChannelInstanceGuard&& other) noexcept;
+    ResultChannelInstanceGuard &operator=(const ResultChannelInstanceGuard &) = delete;
+
+    ResultChannelInstanceGuard(ResultChannelInstanceGuard &&other) noexcept;
+
+    ResultChannelInstanceGuard &operator=(ResultChannelInstanceGuard &&other) noexcept;
 };
 
-struct JavaByteArrayGuard {
+struct FFI_PLUGIN_EXPORT JavaByteArrayGuard {
 private:
-    Result * result;
+    Result *result;
 public:
     explicit JavaByteArrayGuard(Status status, JNIEnv *env, jbyteArray jbyteArray1);
 
     operator Result *() const;
+
     [[nodiscard]] Result *get() const;
 
-    JavaByteArrayGuard(const JavaByteArrayGuard&) = delete;
-    JavaByteArrayGuard &operator=(const JavaByteArrayGuard&) = default;
+    JavaByteArrayGuard(const JavaByteArrayGuard &) = delete;
 
-    JavaByteArrayGuard(JavaByteArrayGuard&& other) noexcept;
-    JavaByteArrayGuard &operator=(JavaByteArrayGuard&& other) noexcept;
+    JavaByteArrayGuard &operator=(const JavaByteArrayGuard &) = default;
+
+    JavaByteArrayGuard(JavaByteArrayGuard &&other) noexcept;
+
+    JavaByteArrayGuard &operator=(JavaByteArrayGuard &&other) noexcept;
 };
+
+FFI_PLUGIN_EXPORT void flutter_result_channel_free_pointer(void *pointer);
+}
 
 #endif
