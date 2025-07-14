@@ -64,25 +64,18 @@ android {
         minSdk = 21
         externalNativeBuild {
             cmake {
-                arguments "-DANDROID_STL=none"
+                arguments "-Wl,--exclude-libs,ALL", "-Wl,--strip-all", "-Wl,--as-needed", "-Wl,--gc-sections", "-Wl,--no-undefined", "-Wl,--no-undefined-version", "-Wl,--relax", "-Wl,--reduce-memory-overheads", "-Wl,--build-id=none"
+                cppFlags "-fno-ident", "-nostdlib++", "-noprofilelib", "-nostdinc++", "-fPIC", "-fno-async-exceptions", "-fno-asynchronous-unwind-tables", "-fdata-sections", "-fno-exceptions", "-ffunction-sections", "-fno-plt", "-fno-rtti", "-fno-rtti-data", "-fno-semantic-interposition", "-fno-stack-clash-protection", "-fno-stack-protector", "-fno-threadsafe-statics", "-fno-unwind-tables", "-fno-use-cxa-atexit", "-fvisibility=hidden", "-fwhole-program-vtables", "-flto", "-O3"
             }
         }
     }
 
     buildTypes {
-        debug {
-            externalNativeBuild {
-                cmake {
-                    arguments "-DANDROID_STL=none"
-                }
-            }
-        }
-
         release {
             externalNativeBuild {
                 cmake {
-                    arguments "-Wl,--gc-sections", "-Wl,--strip-all", "-Wl,--exclude-libs,ALL", "-DANDROID_STL=none", "-Wl,--icf=all", "-Wl,--hash-style=gnu", "-Wl,--no-undefined", "-Wl,--build-id=none", "-Wl,--sort-common", "-Wl,--sort-section=name", "-Wl,--as-needed", "-Wl,--relax", "-Wl,--no-undefined-version", "-Wl,--no-export-dynamic", "-Wl,--lto-O3", "-Wl,--plugin-opt=O3", "-Wl,--gc-sections-depth=3"
-                    cppFlags "-O3", "-flto", "-ffunction-sections", "-fdata-sections", "-fvisibility=hidden", "-fno-exceptions", "-fno-rtti", "-fomit-frame-pointer", "-fmerge-all-constants", "-fno-unwind-tables", "-fno-asynchronous-unwind-tables", "-fno-ident", "-fno-stack-check", "-fno-stack-clash-protection", "-foptimize-sibling-calls", "-fno-plt", "-fno-semantic-interposition", "-DNDEBUG", "-fno-common", "-fPIC", "-fstrict-aliasing"
+                    arguments "-Wl,--exclude-libs,ALL", "-Wl,--strip-all", "-Wl,--as-needed", "-Wl,--gc-sections", "-Wl,--no-undefined", "-Wl,--no-undefined-version", "-Wl,--relax", "-Wl,--reduce-memory-overheads", "-Wl,--build-id=none"
+                    cppFlags "-fno-ident", "-nostdlib++", "-noprofilelib", "-nostdinc++", "-fPIC", "-fno-async-exceptions", "-fno-asynchronous-unwind-tables", "-fdata-sections", "-fno-exceptions", "-ffunction-sections", "-fno-plt", "-fno-rtti", "-fno-rtti-data", "-fno-semantic-interposition", "-fno-stack-clash-protection", "-fno-stack-protector", "-fno-threadsafe-statics", "-fno-unwind-tables", "-fno-use-cxa-atexit", "-fvisibility=hidden", "-fwhole-program-vtables", "-flto", "-O3"
                 }
             }
         }
