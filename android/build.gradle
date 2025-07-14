@@ -64,7 +64,7 @@ android {
         minSdk = 21
         externalNativeBuild {
             cmake {
-                arguments "-Wl,--exclude-libs,ALL", "-Wl,--strip-all", "-Wl,--as-needed", "-Wl,--gc-sections", "-Wl,--relax", "-Wl,--reduce-memory-overheads", "-Wl,--build-id=none"
+                arguments "-Wl,--exclude-libs,ALL", "-Wl,--strip-all", "-Wl,--as-needed", "-Wl,--gc-sections", "-Wl,--relax", "-Wl,--reduce-memory-overheads", "-Wl,--build-id=none", "-DANDROID_STL=none"
                 cppFlags "-fno-ident", "-nostdlib++", "-noprofilelib", "-nostdinc++", "-fPIC", "-fno-async-exceptions", "-fno-asynchronous-unwind-tables", "-fdata-sections", "-fno-exceptions", "-ffunction-sections", "-fno-plt", "-fno-rtti", "-fno-rtti-data", "-fno-semantic-interposition", "-fno-stack-clash-protection", "-fno-stack-protector", "-fno-threadsafe-statics", "-fno-unwind-tables", "-fno-use-cxa-atexit", "-fvisibility=hidden", "-fwhole-program-vtables", "-flto", "-O3"
             }
         }
@@ -74,7 +74,7 @@ android {
         release {
             externalNativeBuild {
                 cmake {
-                    arguments "-Wl,--exclude-libs,ALL", "-Wl,--strip-all", "-Wl,--as-needed", "-Wl,--gc-sections", "-Wl,--relax", "-Wl,--reduce-memory-overheads", "-Wl,--build-id=none"
+                    arguments "-Wl,--exclude-libs,ALL", "-Wl,--strip-all", "-Wl,--as-needed", "-Wl,--gc-sections", "-Wl,--relax", "-Wl,--reduce-memory-overheads", "-Wl,--build-id=none", "-DANDROID_STL=none", "-DNDEBUG"
                     cppFlags "-fno-ident", "-nostdlib++", "-noprofilelib", "-nostdinc++", "-fPIC", "-fno-async-exceptions", "-fno-asynchronous-unwind-tables", "-fdata-sections", "-fno-exceptions", "-ffunction-sections", "-fno-plt", "-fno-rtti", "-fno-rtti-data", "-fno-semantic-interposition", "-fno-stack-clash-protection", "-fno-stack-protector", "-fno-threadsafe-statics", "-fno-unwind-tables", "-fno-use-cxa-atexit", "-fvisibility=hidden", "-fwhole-program-vtables", "-flto", "-O3"
                 }
             }
