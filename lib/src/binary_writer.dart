@@ -7,6 +7,7 @@ class BinaryWriter implements Writer {
   static final Endian _ORDER = Endian.host;
 
   Uint8List _buffer = Uint8List(_INITIAL_SIZE);
+  final _zeroBuffer = Uint8List(8);
   int _offset = 0;
 
   late ByteData _byteData;
@@ -45,7 +46,8 @@ class BinaryWriter implements Writer {
 
   @pragma("vm:prefer-inline")
   void _addPaddingIfNeeded(int alignment) {
-    final remainder = _offset % alignment;
+    final mask = alignment - 1;
+    final remainder = _offset & mask;
 
     if (remainder == 0) {
       return;
@@ -55,9 +57,7 @@ class BinaryWriter implements Writer {
 
     _growBufferIfNeeded(size);
 
-    for (int i = 0; i < size; i++) {
-      _buffer[_offset++] = 0x00;
-    }
+    _buffer.setRange(0, size, _zeroBuffer);
   }
 
   @pragma("vm:prefer-inline")

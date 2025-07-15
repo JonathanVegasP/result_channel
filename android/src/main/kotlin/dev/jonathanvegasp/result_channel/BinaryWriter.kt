@@ -10,6 +10,7 @@ class BinaryWriter : Writer {
     }
 
     private var buffer = ByteBuffer.allocateDirect(INITIAL_SIZE).order(ORDER)
+    private var zeroBuffer = ByteArray(8)
 
     private fun growBufferIfNeeded(size: Int) {
         val buffer = buffer
@@ -36,7 +37,8 @@ class BinaryWriter : Writer {
 
     private fun addPaddingIfNeeded(alignment: Int) {
         val buffer = buffer
-        val remainder = buffer.position() % alignment
+        val mask = alignment - 1
+        val remainder = buffer.position() and mask
 
         if (remainder == 0) return
 
@@ -44,9 +46,7 @@ class BinaryWriter : Writer {
 
         growBufferIfNeeded(size)
 
-        repeat(size) {
-            buffer.put(0x00)
-        }
+        buffer.put(zeroBuffer, 0, size)
     }
 
     override fun byte(value: Byte) {

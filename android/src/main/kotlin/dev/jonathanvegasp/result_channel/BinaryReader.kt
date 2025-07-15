@@ -6,11 +6,9 @@ class BinaryReader(byteArray: ByteArray) : Reader {
     private val buffer = ByteBuffer.wrap(byteArray)
 
     private fun readPadding(alignment: Int) {
-        val mod: Int = buffer.position() % alignment
+        val align = alignment - 1
 
-        if (mod == 0) return
-
-        buffer.position(buffer.position() + alignment - mod)
+        buffer.position((buffer.position() - align) and align.inv())
     }
 
     override fun byte(): Byte {

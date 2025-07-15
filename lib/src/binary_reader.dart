@@ -18,13 +18,8 @@ class BinaryReader implements Reader {
 
   @pragma("vm:prefer-inline")
   void _readPadding(int alignment) {
-    final mod = _offset % alignment;
-
-    if (mod == 0) {
-      return;
-    }
-
-    _offset += (alignment - mod);
+    final align = alignment - 1;
+    _offset = (_offset + align) & ~align;
   }
 
   @pragma("vm:prefer-inline")
