@@ -122,9 +122,9 @@ ResultChannelInstanceGuard::operator=(ResultChannelInstanceGuard &&other) noexce
     return *this;
 }
 
-JavaByteArrayGuard::JavaByteArrayGuard(Status status, JNIEnv *env, jbyteArray jbyteArray1) : result(
+JavaByteArrayGuard::JavaByteArrayGuard(ResultChannelStatus status, JNIEnv *env, jbyteArray jbyteArray1) : result(
         nullptr) {
-    auto instance = reinterpret_cast<Result *>(malloc(sizeof(Result)));
+    auto instance = reinterpret_cast<ResultNative *>(malloc(sizeof(ResultNative)));
     jsize length = env->GetArrayLength(jbyteArray1);
     auto javaBytes = reinterpret_cast<jbyte *>(env->GetPrimitiveArrayCritical(jbyteArray1,
                                                                               nullptr));
@@ -139,9 +139,9 @@ JavaByteArrayGuard::JavaByteArrayGuard(Status status, JNIEnv *env, jbyteArray jb
     result = instance;
 }
 
-JavaByteArrayGuard::operator Result *() const { return result; }
+JavaByteArrayGuard::operator ResultNative *() const { return result; }
 
-Result *JavaByteArrayGuard::get() const { return result; }
+ResultNative *JavaByteArrayGuard::get() const { return result; }
 
 JavaByteArrayGuard::JavaByteArrayGuard(JavaByteArrayGuard &&other) noexcept: result(other.result) {
     other.result = nullptr;
@@ -202,7 +202,7 @@ Java_dev_jonathanvegasp_result_1channel_ResultChannel_success(JNIEnv *env, jclas
                                                               jbyteArray value) {
     auto callback = reinterpret_cast<Callback>(callback_ptr);
 
-    callback(JavaByteArrayGuard(StatusOk, env, value));
+    callback(JavaByteArrayGuard(ResultChannelStatusOk, env, value));
 }
 
 JNIEXPORT void JNICALL
@@ -211,6 +211,6 @@ Java_dev_jonathanvegasp_result_1channel_ResultChannel_failure(JNIEnv *env, jclas
                                                               jbyteArray value) {
     auto callback = reinterpret_cast<Callback>(callback_ptr);
 
-    callback(JavaByteArrayGuard(StatusError, env, value));
+    callback(JavaByteArrayGuard(ResultChannelStatusError, env, value));
 }
 }

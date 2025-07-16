@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
+
 import 'writer.dart';
 
 class BinaryWriter implements Writer {
@@ -25,7 +27,7 @@ class BinaryWriter implements Writer {
     final buffer = _buffer;
     final capacity = buffer.length;
 
-    if (requiredSize <= capacity) {
+    if (capacity >= requiredSize) {
       return;
     }
 

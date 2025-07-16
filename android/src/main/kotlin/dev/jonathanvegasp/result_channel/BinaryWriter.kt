@@ -18,7 +18,7 @@ class BinaryWriter : Writer {
         val requiredSize = offset + size
         val capacity = buffer.capacity()
 
-        if (requiredSize <= capacity) return
+        if (capacity >= requiredSize) return
 
         var newCapacity = capacity shl 1
 
@@ -91,7 +91,7 @@ class BinaryWriter : Writer {
     }
 
     override fun intArray(value: IntArray) {
-        val size = value.size * Int.SIZE_BYTES;
+        val size = value.size shl 2;
         addPaddingIfNeeded(Int.SIZE_BYTES)
         growBufferIfNeeded(size)
         val buffer = buffer
@@ -100,7 +100,7 @@ class BinaryWriter : Writer {
     }
 
     override fun longArray(value: LongArray) {
-        val size = value.size * Long.SIZE_BYTES;
+        val size = value.size shl 3;
         addPaddingIfNeeded(Long.SIZE_BYTES)
         growBufferIfNeeded(size)
         val buffer = buffer
@@ -109,7 +109,7 @@ class BinaryWriter : Writer {
     }
 
     override fun floatArray(value: FloatArray) {
-        val size = value.size * Float.SIZE_BYTES
+        val size = value.size shl 2
         addPaddingIfNeeded(Float.SIZE_BYTES)
         growBufferIfNeeded(size)
         val buffer = buffer
@@ -118,7 +118,7 @@ class BinaryWriter : Writer {
     }
 
     override fun doubleArray(value: DoubleArray) {
-        val size = Double.SIZE_BYTES * value.size
+        val size = value.size shl 3
         addPaddingIfNeeded(Double.SIZE_BYTES)
         growBufferIfNeeded(size)
         val buffer = buffer

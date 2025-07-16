@@ -8,7 +8,7 @@ class BinaryReader(byteArray: ByteArray) : Reader {
     private fun readPadding(alignment: Int) {
         val align = alignment - 1
 
-        buffer.position((buffer.position() - align) and align.inv())
+        buffer.position((buffer.position() + align) and align.inv())
     }
 
     override fun byte(): Byte {
@@ -55,7 +55,7 @@ class BinaryReader(byteArray: ByteArray) : Reader {
         val array = IntArray(size)
         val buffer = buffer
         buffer.asIntBuffer()[array]
-        buffer.position(buffer.position() + Int.SIZE_BYTES * size)
+        buffer.position(buffer.position() + (size shl 2))
         return array
     }
 
@@ -64,7 +64,7 @@ class BinaryReader(byteArray: ByteArray) : Reader {
         val array = LongArray(size)
         val buffer = buffer
         buffer.asLongBuffer()[array]
-        buffer.position(buffer.position() + Long.SIZE_BYTES * size)
+        buffer.position(buffer.position() + (size shl 3))
         return array
     }
 
@@ -73,7 +73,7 @@ class BinaryReader(byteArray: ByteArray) : Reader {
         val array = FloatArray(size)
         val buffer = buffer
         buffer.asFloatBuffer()[array]
-        buffer.position(buffer.position() + Float.SIZE_BYTES * size)
+        buffer.position(buffer.position() + (size shl 2))
         return array
     }
 
@@ -82,7 +82,7 @@ class BinaryReader(byteArray: ByteArray) : Reader {
         val array = DoubleArray(size)
         val buffer = buffer
         buffer.asDoubleBuffer()[array]
-        buffer.position(buffer.position() + Double.SIZE_BYTES * size)
+        buffer.position(buffer.position() + (size shl 3))
         return array
     }
 }

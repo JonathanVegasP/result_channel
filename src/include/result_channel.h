@@ -55,17 +55,17 @@ public:
 };
 
 typedef enum {
-    StatusOk = 0,
-    StatusError = 1
-} Status;
+    ResultChannelStatusOk = 0,
+    ResultChannelStatusError = 1
+} ResultChannelStatus;
 
 typedef struct {
-    Status status;
+    ResultChannelStatus status;
     uint8_t *data;
     int32_t size;
-} Result;
+} ResultNative;
 
-typedef void (*Callback)(Result *);
+typedef void (*Callback)(ResultNative *);
 
 struct FFI_PLUGIN_EXPORT ResultChannelInstanceGuard {
 private:
@@ -91,13 +91,13 @@ public:
 
 struct FFI_PLUGIN_EXPORT JavaByteArrayGuard {
 private:
-    Result *result;
+    ResultNative *result;
 public:
-    explicit JavaByteArrayGuard(Status status, JNIEnv *env, jbyteArray jbyteArray1);
+    explicit JavaByteArrayGuard(ResultChannelStatus status, JNIEnv *env, jbyteArray jbyteArray1);
 
-    operator Result *() const;
+    operator ResultNative *() const;
 
-    [[nodiscard]] Result *get() const;
+    [[nodiscard]] ResultNative *get() const;
 
     JavaByteArrayGuard(const JavaByteArrayGuard &) = delete;
 

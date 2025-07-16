@@ -25,7 +25,7 @@ class BinaryReader implements Reader {
   @pragma("vm:prefer-inline")
   @override
   int readByte() {
-    return _byteArray[_offset++];
+    return _byteData.getUint8( _offset++);
   }
 
   @pragma("vm:prefer-inline")
@@ -93,7 +93,7 @@ class BinaryReader implements Reader {
   Int32List readInt32List(int size) {
     _readPadding(Int32List.bytesPerElement);
     final list = _byteArray.buffer.asInt32List(_offset, size);
-    _offset += size * Int32List.bytesPerElement;
+    _offset += size << 2;
     return list;
   }
 
@@ -102,7 +102,7 @@ class BinaryReader implements Reader {
   Int64List readInt64List(int size) {
     _readPadding(Int64List.bytesPerElement);
     final list = _byteArray.buffer.asInt64List(_offset, size);
-    _offset += size * Int64List.bytesPerElement;
+    _offset += size << 3;
     return list;
   }
 
@@ -111,7 +111,7 @@ class BinaryReader implements Reader {
   Float32List readFloat32List(int size) {
     _readPadding(Float32List.bytesPerElement);
     final list = _byteArray.buffer.asFloat32List(_offset, size);
-    _offset += size * Float32List.bytesPerElement;
+    _offset += size << 2;
     return list;
   }
 
@@ -120,7 +120,7 @@ class BinaryReader implements Reader {
   Float64List readFloat64List(int size) {
     _readPadding(Float64List.bytesPerElement);
     final list = _byteArray.buffer.asFloat64List(_offset, size);
-    _offset += size * Float64List.bytesPerElement;
+    _offset += size << 3;
     return list;
   }
 }
