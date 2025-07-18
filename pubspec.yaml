@@ -1,6 +1,6 @@
 name: result_channel
 description: "FFI Result Channel"
-version: 0.9.0
+version: 0.9.1
 homepage:
 
 environment:
@@ -36,8 +36,6 @@ flutter:
     platforms:
       android:
         package: dev.jonathanvegasp.result_channel
-        pluginClass: ResultChannelPlugin
-      ios:
         pluginClass: ResultChannelPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
