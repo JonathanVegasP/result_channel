@@ -11,11 +11,11 @@
 extern "C" {
 struct FFI_PLUGIN_EXPORT JNIEnvAttachGuard {
 private:
-    JavaVM *vm;
+    const JavaVM *vm;
     JNIEnv *env;
     bool attached;
 public:
-    explicit JNIEnvAttachGuard(JavaVM *javaVm);
+    explicit JNIEnvAttachGuard(const JavaVM *javaVm);
 
     ~JNIEnvAttachGuard();
 
@@ -34,10 +34,10 @@ public:
 
 struct FFI_PLUGIN_EXPORT JNILocalRefGuard {
 private:
-    JNIEnv *env;
+    const JNIEnv *env;
     jobject ref;
 public:
-    explicit JNILocalRefGuard(JNIEnv *jniEnv, jobject jniRef);
+    explicit JNILocalRefGuard(const JNIEnv *jniEnv, jobject jniRef);
 
     ~JNILocalRefGuard();
 
@@ -69,10 +69,10 @@ typedef void (*Callback)(ResultNative *);
 
 struct FFI_PLUGIN_EXPORT ResultChannelInstanceGuard {
 private:
-    JNIEnv *env;
+    const JNIEnv *env;
     jobject instance;
 public:
-    explicit ResultChannelInstanceGuard(JNIEnv *env, Callback callback);
+    explicit ResultChannelInstanceGuard(const JNIEnv *env, Callback callback);
 
     ~ResultChannelInstanceGuard();
 
@@ -93,7 +93,7 @@ struct FFI_PLUGIN_EXPORT JavaByteArrayGuard {
 private:
     ResultNative *result;
 public:
-    explicit JavaByteArrayGuard(ResultChannelStatus status, JNIEnv *env, jbyteArray jbyteArray1);
+    explicit JavaByteArrayGuard(ResultChannelStatus status, const JNIEnv *env, jbyteArray jbyteArray1);
 
     operator ResultNative *() const;
 

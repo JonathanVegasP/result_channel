@@ -3,7 +3,7 @@
 static JavaVM *g_javaVm = nullptr;
 static jclass g_resultChannel = nullptr;
 
-JNIEnvAttachGuard::JNIEnvAttachGuard(JavaVM *javaVm) : vm(javaVm), env(nullptr), attached(false) {
+JNIEnvAttachGuard::JNIEnvAttachGuard(const JavaVM *javaVm) : vm(javaVm), env(nullptr), attached(false) {
     jint status = vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
 
     if (status == JNI_EDETACHED) {
@@ -52,7 +52,7 @@ JNIEnvAttachGuard &JNIEnvAttachGuard::operator=(JNIEnvAttachGuard &&other) noexc
     return *this;
 }
 
-JNILocalRefGuard::JNILocalRefGuard(JNIEnv *jniEnv, jobject jniRef) : env(jniEnv), ref(jniRef) {}
+JNILocalRefGuard::JNILocalRefGuard(const JNIEnv *jniEnv, jobject jniRef) : env(jniEnv), ref(jniRef) {}
 
 JNILocalRefGuard::~JNILocalRefGuard() {
     if (ref && env) {
@@ -84,7 +84,7 @@ JNILocalRefGuard &JNILocalRefGuard::operator=(JNILocalRefGuard &&other) noexcept
     return *this;
 }
 
-ResultChannelInstanceGuard::ResultChannelInstanceGuard(JNIEnv *jniEnv, Callback callback) : env(
+ResultChannelInstanceGuard::ResultChannelInstanceGuard(const JNIEnv *jniEnv, Callback callback) : env(
         jniEnv), instance(nullptr) {
     auto callback_ptr = reinterpret_cast<uint64_t>(callback);
     jmethodID jmethodID1 = jniEnv->GetMethodID(g_resultChannel, "<init>", "(J)V");
@@ -122,7 +122,7 @@ ResultChannelInstanceGuard::operator=(ResultChannelInstanceGuard &&other) noexce
     return *this;
 }
 
-JavaByteArrayGuard::JavaByteArrayGuard(ResultChannelStatus status, JNIEnv *env, jbyteArray jbyteArray1) : result(
+JavaByteArrayGuard::JavaByteArrayGuard(ResultChannelStatus status, const JNIEnv *env, jbyteArray jbyteArray1) : result(
         nullptr) {
     auto instance = reinterpret_cast<ResultNative *>(malloc(sizeof(ResultNative)));
     jsize length = env->GetArrayLength(jbyteArray1);

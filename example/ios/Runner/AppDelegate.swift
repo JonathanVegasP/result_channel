@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import result_channel
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {

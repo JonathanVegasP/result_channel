@@ -49,12 +49,7 @@ class BinarySerializer implements Serializer<Uint8List> {
     } else if (value is bool) {
       writer.putByte(value ? _TRUE : _FALSE);
     } else if (value is int) {
-      // Dart's int can be 64-bit, Kotlin's int is 32-bit.
-      // We need to decide if we want to serialize as INT (32-bit) or LONG (64-bit).
-      // Based on Kotlin's `is Byte, is Short, is Int` for INT,
-      // let's assume Dart ints that fit in 32-bit signed int go to INT,
-      // larger ones go to LONG.
-      if (value >= -0x80000000 && value <= 0x7FFFFFFF) {
+      if ((value >> 31) == (value >> 63)) {
         // Fits in signed 32-bit int
         writer.putByte(_INT);
         writer.putInt(value);
