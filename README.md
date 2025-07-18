@@ -21,24 +21,6 @@ This plugin serves as:
 -   **Performance Optimization**: Enables synchronous, high-performance native calls
 -   **Cross-Platform Bridge**: Unified interface for Android and iOS native interop
 
-## Architecture
-
-```
-
-┌─────────────────────────────────────────────────────────────┐
-│                    Flutter Application                      │
-├─────────────────────────────────────────────────────────────┤
-│                    Your Plugin                              │
-├─────────────────────────────────────────────────────────────┤
-│                   Result Channel                            │
-│                (FFI Abstraction Layer)                      │
-├─────────────────────────────────────────────────────────────┤
-│              Native Libraries (C/C++)                       │
-│                  Android / iOS                              │
-└─────────────────────────────────────────────────────────────┘
-
-````
-
 ## Installation
 
 Add this to your plugin's `pubspec.yaml`:
@@ -201,10 +183,10 @@ This is infrastructure code that other plugins depend on. When contributing:
 
 ## Requirements
 
-  - Flutter SDK: \>= 3.0.0
-  - Dart SDK: \>= 2.17.0
+  - Flutter SDK: \>= 3.32.0
+  - Dart SDK: \>= 3.8.0
   - Android: API level 21+ (for FFI support)
-  - iOS: 11.0+ (for FFI support)
+  - iOS: 12.0+ (for FFI support)
 
 ## License
 
