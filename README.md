@@ -1,8 +1,3 @@
-My apologies\! It seems I missed re-adding some of the boilerplate and the `FFI_PLUGIN_EXPORT` for the `add_numbers` function in the Swift example. I'll correct that immediately and provide the complete, updated Markdown for download.
-
-Here is the full and corrected Markdown content for the `result_channel_readme.md` file:
-
-```markdown
 # Result Channel
 
 A Flutter plugin infrastructure that provides a simplified abstraction layer for other plugins to implement FFI (Foreign Function Interface) native calls. Think of it as a "Dart Native Interop" helper.
