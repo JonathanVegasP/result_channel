@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 
+import 'package:ffi/ffi.dart';
+
 import 'binary_serializer.dart';
 import 'result_dart.dart';
 import 'result_status.dart';
@@ -18,6 +20,12 @@ final _lib = (() {
 })();
 
 extension ResultNativeExt on Pointer<ResultNative> {
+  @pragma("vm:prefer-inline")
+  void free() {
+    malloc.free(ref.data);
+    malloc.free(this);
+  }
+
   @pragma("vm:prefer-inline")
   ResultDart toResultDart() {
     final value = ref;
