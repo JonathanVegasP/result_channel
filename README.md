@@ -173,6 +173,41 @@ For iOS, you need to include a `.h` header file and use the `@_cdecl` attribute 
     # ... rest of your podspec ...
     ```
 
+## Dart Usage Example
+
+Here is a practical example of how a plugin can use `ResultChannel` to call a native FFI function and safely retrieve the result in Dart:
+
+```dart
+import 'dart:ffi';
+import 'package:result_channel/result_channel.dart';
+
+// Define the native function signature (e.g., int32_t add_numbers(int32_t, int32_t))
+typedef NativeAddNumbers = Pointer<ResultNative> Function(Int32 a, Int32 b);
+typedef DartAddNumbers = Pointer<ResultNative> Function(int a, int b);
+
+final DynamicLibrary nativeLib = DynamicLibrary.open('libyour_library.so'); // or .framework on iOS
+
+final DartAddNumbers addNumbers = nativeLib
+  .lookup<NativeFunction<NativeAddNumbers>>('add_numbers')
+  .asFunction();
+
+void main() async {
+  // Call the native function
+  final Pointer<ResultNative> resultPtr = addNumbers(2, 3);
+
+  // Convert to ResultDart using the ResultChannel extension
+  final result = resultPtr.toResultDart();
+
+  if (result.status == ResultStatus.ok) {
+    print('Result: ${result.data}');
+  } else {
+    print('Error calling native function');
+  }
+}
+```
+
+> **Note:** Adjust the function name, parameters, and library name according to your native code.
+
 ## Best Practices
 
 ### Memory Management
