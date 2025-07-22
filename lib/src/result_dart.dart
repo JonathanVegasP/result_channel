@@ -1,8 +1,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-
-import 'result_status.dart';
+import 'package:result_channel/result_channel.dart';
 
 final class ResultNative extends Struct {
   @Uint8()
@@ -24,9 +23,17 @@ final class ResultDart {
   Pointer<ResultNative> toResultNative() {
     final pointer = malloc<ResultNative>();
 
+    final bytes = ResultChannel.serializer.serialize(data);
+
+    final length = bytes.length;
+
+    final bytesPointer = malloc<Uint8>(length);
+
+    bytesPointer.asTypedList(length).setAll(0, bytes);
+
     pointer.ref
-      ..data = nullptr
-      ..status = 0
+      ..data = bytesPointer
+      ..status = status.index
       ..size = 0;
 
     return pointer;
