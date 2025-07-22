@@ -34,7 +34,7 @@ final class ResultDart {
     pointer.ref
       ..data = bytesPointer
       ..status = status.index
-      ..size = 0;
+      ..size = length;
 
     return pointer;
   }
