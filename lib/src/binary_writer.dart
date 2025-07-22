@@ -49,7 +49,8 @@ class BinaryWriter implements Writer {
   @pragma("vm:prefer-inline")
   void _addPaddingIfNeeded(int alignment) {
     final mask = alignment - 1;
-    final remainder = _offset & mask;
+    final offset = _offset;
+    final remainder = offset & mask;
 
     if (remainder == 0) {
       return;
@@ -59,7 +60,11 @@ class BinaryWriter implements Writer {
 
     _growBufferIfNeeded(size);
 
-    _buffer.setRange(0, size, _zeroBuffer);
+    final newSize = offset + size;
+
+    _buffer.setRange(offset, newSize, _zeroBuffer);
+
+    _offset = newSize;
   }
 
   @pragma("vm:prefer-inline")
@@ -72,46 +77,46 @@ class BinaryWriter implements Writer {
   @pragma("vm:prefer-inline")
   @override
   void putChar(int value) {
-    _addPaddingIfNeeded(2);
-    _growBufferIfNeeded(2);
+    _addPaddingIfNeeded(Int16List.bytesPerElement);
+    _growBufferIfNeeded(Int16List.bytesPerElement);
     _byteData.setUint16(_offset, value, _ORDER);
-    _offset += 2;
+    _offset += Int16List.bytesPerElement;
   }
 
   @pragma("vm:prefer-inline")
   @override
   void putInt(int value) {
-    _addPaddingIfNeeded(4);
-    _growBufferIfNeeded(4);
+    _addPaddingIfNeeded(Int32List.bytesPerElement);
+    _growBufferIfNeeded(Int32List.bytesPerElement);
     _byteData.setInt32(_offset, value, _ORDER);
-    _offset += 4;
+    _offset += Int32List.bytesPerElement;
   }
 
   @pragma("vm:prefer-inline")
   @override
   void putLong(int value) {
-    _addPaddingIfNeeded(8);
-    _growBufferIfNeeded(8);
+    _addPaddingIfNeeded(Int64List.bytesPerElement);
+    _growBufferIfNeeded(Int64List.bytesPerElement);
     _byteData.setInt64(_offset, value, _ORDER);
-    _offset += 8;
+    _offset += Int64List.bytesPerElement;
   }
 
   @pragma("vm:prefer-inline")
   @override
   void putFloat(double value) {
-    _addPaddingIfNeeded(4);
-    _growBufferIfNeeded(4);
+    _addPaddingIfNeeded(Float32List.bytesPerElement);
+    _growBufferIfNeeded(Float32List.bytesPerElement);
     _byteData.setFloat32(_offset, value, _ORDER);
-    _offset += 4;
+    _offset += Float32List.bytesPerElement;
   }
 
   @pragma("vm:prefer-inline")
   @override
   void putDouble(double value) {
-    _addPaddingIfNeeded(8);
-    _growBufferIfNeeded(8);
+    _addPaddingIfNeeded(Float64List.bytesPerElement);
+    _growBufferIfNeeded(Float64List.bytesPerElement);
     _byteData.setFloat64(_offset, value, _ORDER);
-    _offset += 8;
+    _offset += Float64List.bytesPerElement;
   }
 
   @pragma("vm:prefer-inline")

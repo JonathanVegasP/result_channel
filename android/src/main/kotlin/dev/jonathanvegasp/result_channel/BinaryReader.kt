@@ -1,9 +1,10 @@
 package dev.jonathanvegasp.result_channel
 
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class BinaryReader(byteArray: ByteArray) : Reader {
-    private val buffer = ByteBuffer.wrap(byteArray)
+    private val buffer = ByteBuffer.wrap(byteArray).order(ByteOrder.nativeOrder())
 
     private fun readPadding(alignment: Int) {
         val align = alignment - 1
