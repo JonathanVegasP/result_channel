@@ -163,6 +163,41 @@ JavaByteArrayGuard &JavaByteArrayGuard::operator=(JavaByteArrayGuard &&other) no
     return *this;
 }
 
+DartByteArrayGuard::DartByteArrayGuard(JNIEnv *jniEnv, ResultNative *resultNative) : env(jniEnv),
+                                                                                     result(
+                                                                                             nullptr) {
+    jbyteArray byteArray = env->NewByteArray(resultNative->size);
+    env->SetByteArrayRegion(byteArray, 0, resultNative->size,
+                            reinterpret_cast<const jbyte *>(resultNative->data));
+    result = byteArray;
+}
+
+DartByteArrayGuard::operator jbyteArray() const { return result; }
+
+jbyteArray DartByteArrayGuard::get() const { return result; }
+
+DartByteArrayGuard::~DartByteArrayGuard() {
+    JNILocalRefGuard localRefGuard(env, result);
+}
+
+DartByteArrayGuard::DartByteArrayGuard(DartByteArrayGuard &&other) noexcept: env(other.env),
+                                                                             result(other.result) {
+    other.env = nullptr;
+    other.result = nullptr;
+}
+
+DartByteArrayGuard &DartByteArrayGuard::operator=(DartByteArrayGuard &&other) noexcept {
+    if (this != &other) {
+        JNILocalRefGuard localRefGuard(env, result);
+        env = other.env;
+        result = other.result;
+        other.env = nullptr;
+        other.result = nullptr;
+    }
+
+    return *this;
+}
+
 extern "C" {
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
     JNIEnvAttachGuard jniEnvAttachGuard(vm);

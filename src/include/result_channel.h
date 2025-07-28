@@ -108,6 +108,28 @@ public:
     JavaByteArrayGuard &operator=(JavaByteArrayGuard &&other) noexcept;
 };
 
+struct FFI_PLUGIN_EXPORT DartByteArrayGuard {
+private:
+    JNIEnv *env;
+    jbyteArray result;
+public:
+    explicit DartByteArrayGuard(JNIEnv *env, ResultNative *result);
+
+    ~DartByteArrayGuard();
+
+    operator jbyteArray() const;
+
+    [[nodiscard]] jbyteArray get() const;
+
+    DartByteArrayGuard(const DartByteArrayGuard &) = delete;
+
+    DartByteArrayGuard &operator=(const DartByteArrayGuard &) = delete;
+
+    DartByteArrayGuard(DartByteArrayGuard &&other) noexcept;
+
+    DartByteArrayGuard &operator=(DartByteArrayGuard &&other) noexcept;
+};
+
 FFI_PLUGIN_EXPORT void flutter_result_channel_free_pointer(void *pointer);
 }
 

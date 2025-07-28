@@ -31,120 +31,130 @@ class BinarySerializer implements Serializer<Uint8List> {
 
   @pragma('vm:prefer-inline')
   static void _writeSize(Writer writer, int value) {
-    if (value < _MAX_BYTES) {
-      writer.putByte(value);
-    } else if (value <= _MAX_CHAR_VALUE) {
-      writer.putByte(_MAX_BYTES);
-      writer.putChar(value);
-    } else {
-      writer.putByte(_MAX_CHAR);
-      writer.putInt(value);
+    switch (value) {
+      case < _MAX_BYTES:
+        writer.putByte(value);
+      case <= _MAX_CHAR_VALUE:
+        writer.putByte(_MAX_BYTES);
+        writer.putChar(value);
+      default:
+        writer.putByte(_MAX_CHAR);
+        writer.putInt(value);
     }
   }
 
   @pragma('vm:prefer-inline')
   static void _append(Writer writer, dynamic value) {
-    if (value == null) {
-      writer.putByte(_NULL);
-    } else if (value is bool) {
-      writer.putByte(value ? _TRUE : _FALSE);
-    } else if (value is int) {
-      if ((value >> 31) == (value >> 63)) {
-        // Fits in signed 32-bit int
-        writer.putByte(_INT);
-        writer.putInt(value);
-      } else {
-        writer.putByte(_LONG);
-        writer.putLong(value);
-      }
-    } else if (value is double) {
-      writer.putByte(_DOUBLE);
-      writer.putDouble(value);
-    } else if (value is String) {
-      writer.putByte(_STRING);
-
-      final length = value.length;
-      Uint8List bytes = Uint8List(length);
-      Uint8List? utf8Bytes;
-      int utf8Offset = 0;
-
-      for (int i = 0; i < length; i += 1) {
-        final int char = value.codeUnitAt(i);
-
-        if (char <= 0x7f) {
-          bytes[i] = char;
+    switch (value) {
+      case Null _:
+        writer.putByte(_NULL);
+        break;
+      case bool v:
+        writer.putByte(v ? _TRUE : _FALSE);
+        break;
+      case int v:
+        if ((v >> 31) == (v >> 63)) {
+          writer.putByte(_INT);
+          writer.putInt(v);
         } else {
-          utf8Bytes = utf8.encode(value.substring(i));
-          utf8Offset = i;
-          break;
+          writer.putByte(_LONG);
+          writer.putLong(v);
         }
-      }
+        break;
+      case double v:
+        writer.putByte(_DOUBLE);
+        writer.putDouble(v);
+        break;
+      case String v:
+        writer.putByte(_STRING);
+        final length = v.length;
+        final bytes = Uint8List(length);
+        Uint8List? utf8Bytes;
+        var utf8Offset = 0;
 
-      if (utf8Bytes != null) {
-        _writeSize(writer, utf8Offset + utf8Bytes.length);
-        writer.putUint8List(Uint8List.sublistView(bytes, 0, utf8Offset));
-        writer.putUint8List(utf8Bytes);
-      } else {
-        _writeSize(writer, bytes.length);
-        writer.putUint8List(bytes);
-      }
-    } else if (value is Uint8List) {
-      writer.putByte(_BYTE_ARRAY);
-      _writeSize(writer, value.length);
-      writer.putUint8List(value);
-    } else if (value is Int32List) {
-      writer.putByte(_INT_ARRAY);
-      _writeSize(writer, value.length);
-      writer.putInt32List(value);
-    } else if (value is Int64List) {
-      writer.putByte(_LONG_ARRAY);
-      _writeSize(writer, value.length);
-      writer.putInt64List(value);
-    } else if (value is Float32List) {
-      writer.putByte(_FLOAT_ARRAY);
-      _writeSize(writer, value.length);
-      writer.putFloat32List(value);
-    } else if (value is Float64List) {
-      writer.putByte(_DOUBLE_ARRAY);
-      _writeSize(writer, value.length);
-      writer.putFloat64List(value);
-    } else if (value is List) {
-      writer.putByte(_LIST);
-      _writeSize(writer, value.length);
-      for (final item in value) {
-        _append(writer, item);
-      }
-    } else if (value is Set) {
-      writer.putByte(_SET);
-      _writeSize(writer, value.length);
-      for (final item in value) {
-        _append(writer, item);
-      }
-    } else if (value is Map) {
-      writer.putByte(_MAP);
-      _writeSize(writer, value.length);
-      final entries = value.entries;
-      for (final entry in entries) {
-        _append(writer, entry.key);
-        _append(writer, entry.value);
-      }
-    } else {
-      throw ArgumentError(
-        'Unsupported type for serialization: ${value.runtimeType}',
-      );
+        for (var i = 0; i < length; i++) {
+          final char = v.codeUnitAt(i);
+          if (char <= 0x7F) {
+            bytes[i] = char;
+          } else {
+            utf8Bytes = utf8.encode(value.substring(i));
+            utf8Offset = i;
+            break;
+          }
+        }
+
+        if (utf8Bytes != null) {
+          _writeSize(writer, utf8Offset + utf8Bytes.length);
+          writer.putUint8List(Uint8List.sublistView(bytes, 0, utf8Offset));
+          writer.putUint8List(utf8Bytes);
+        } else {
+          _writeSize(writer, length);
+          writer.putUint8List(bytes);
+        }
+        break;
+      case Uint8List v:
+        writer.putByte(_BYTE_ARRAY);
+        _writeSize(writer, v.length);
+        writer.putUint8List(v);
+        break;
+      case Int32List v:
+        writer.putByte(_INT_ARRAY);
+        _writeSize(writer, v.length);
+        writer.putInt32List(v);
+        break;
+      case Int64List v:
+        writer.putByte(_LONG_ARRAY);
+        _writeSize(writer, v.length);
+        writer.putInt64List(v);
+        break;
+      case Float32List v:
+        writer.putByte(_FLOAT_ARRAY);
+        _writeSize(writer, v.length);
+        writer.putFloat32List(v);
+        break;
+      case Float64List v:
+        writer.putByte(_DOUBLE_ARRAY);
+        _writeSize(writer, v.length);
+        writer.putFloat64List(v);
+        break;
+      case List v:
+        writer.putByte(_LIST);
+        _writeSize(writer, v.length);
+        for (final item in v) {
+          _append(writer, item);
+        }
+        break;
+      case Set v:
+        writer.putByte(_SET);
+        _writeSize(writer, v.length);
+        for (final item in v) {
+          _append(writer, item);
+        }
+        break;
+      case Map v:
+        writer.putByte(_MAP);
+        _writeSize(writer, v.length);
+        final entries = v.entries;
+        for (final item in entries) {
+          _append(writer, item.key);
+          _append(writer, item.value);
+        }
+        break;
+      default:
+        throw ArgumentError(
+          'Unsupported type for serialization: ${value.runtimeType}',
+        );
     }
   }
 
   @pragma('vm:prefer-inline')
   static int _readSize(BinaryReader reader) {
     final typeByte = reader.readByte();
-    if (typeByte < _MAX_BYTES) {
-      return typeByte;
-    } else if (typeByte == _MAX_BYTES) {
-      return reader.readChar();
-    } else {
-      return reader.readInt();
-    }
+    return switch (typeByte) {
+      < _MAX_BYTES => typeByte,
+      == _MAX_BYTES => reader.readChar(),
+      _ => reader.readInt(),
+    };
   }
 
   @pragma('vm:prefer-inline')
