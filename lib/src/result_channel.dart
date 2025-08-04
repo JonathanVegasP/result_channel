@@ -6,6 +6,7 @@ import 'package:ffi/ffi.dart';
 
 import 'binary_serializer.dart';
 import 'result_dart.dart';
+import 'result_native.dart';
 import 'result_status.dart';
 import 'typedefs.dart';
 
@@ -45,6 +46,28 @@ extension ResultNativeExt on Pointer<ResultNative> {
     }
 
     return resultDart;
+  }
+}
+
+extension ResultDartExt on ResultDart {
+  @pragma('vm:prefer-inline')
+  Pointer<ResultNative> toResultNative() {
+    final pointer = malloc<ResultNative>();
+
+    final bytes = ResultChannel.serializer.serialize(data);
+
+    final length = bytes.length;
+
+    final bytesPointer = malloc<Uint8>(length);
+
+    bytesPointer.asTypedList(length).setAll(0, bytes);
+
+    pointer.ref
+      ..data = bytesPointer
+      ..status = status.index
+      ..size = length;
+
+    return pointer;
   }
 }
 

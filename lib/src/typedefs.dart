@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'result_dart.dart';
+import 'result_native.dart';
 
 typedef ResultChannelVoidFunction = NativeFunction<Void Function()>;
 

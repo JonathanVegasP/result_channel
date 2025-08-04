@@ -1,7 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:flutter/services.dart';
-
 import 'writer.dart';
 
 class BinaryWriter implements Writer {
