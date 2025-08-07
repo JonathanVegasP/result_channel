@@ -177,7 +177,9 @@ DartByteArrayGuard::operator jbyteArray() const { return result; }
 jbyteArray DartByteArrayGuard::get() const { return result; }
 
 DartByteArrayGuard::~DartByteArrayGuard() {
-    JNILocalRefGuard localRefGuard(env, result);
+    if (result && env) {
+        env->DeleteLocalRef(result);
+    }
 }
 
 DartByteArrayGuard::DartByteArrayGuard(DartByteArrayGuard &&other) noexcept: env(other.env),
@@ -188,7 +190,9 @@ DartByteArrayGuard::DartByteArrayGuard(DartByteArrayGuard &&other) noexcept: env
 
 DartByteArrayGuard &DartByteArrayGuard::operator=(DartByteArrayGuard &&other) noexcept {
     if (this != &other) {
-        JNILocalRefGuard localRefGuard(env, result);
+        if (result && env) {
+            env->DeleteLocalRef(result);
+        }
         env = other.env;
         result = other.result;
         other.env = nullptr;
