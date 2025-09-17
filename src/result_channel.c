@@ -43,7 +43,7 @@ static unsigned int djb2_hash(const char *str) {
 
 static void hashmap_resize(HashMap *map) {
     const size_t old_size = map->size;
-    const size_t new_size = old_size * 2;
+    const size_t new_size = old_size << 1;
 
     HashNode **old_buckets = map->buckets;
     HashNode **new_buckets = malloc(new_size * sizeof(HashNode *));
