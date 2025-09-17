@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(result_channel_library VERSION 1.0.0 LANGUAGES CXX)
+project(result_channel_library VERSION 1.0.0 LANGUAGES C)
 
-add_library(result_channel SHARED "result_channel.cpp")
+add_library(result_channel SHARED "result_channel.c")
 
 set_target_properties(result_channel PROPERTIES PUBLIC_HEADER include/result_channel.h OUTPUT_NAME "result_channel")
 

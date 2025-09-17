@@ -1,6 +1,6 @@
 name: result_channel
 description: "FFI Result Channel"
-version: 0.9.12
+version: 0.9.13
 homepage:
 
 environment:

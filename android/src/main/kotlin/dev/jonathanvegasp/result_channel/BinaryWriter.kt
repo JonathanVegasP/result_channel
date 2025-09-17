@@ -126,13 +126,11 @@ class BinaryWriter : Writer {
         buffer.position(buffer.position() + size)
     }
 
-    override fun toByteArray(): ByteArray {
+    override fun toByteBuffer(): ByteBuffer {
         val buffer = buffer
         val offset = buffer.position()
         buffer.position(0)
         buffer.limit(offset)
-        val array = ByteArray(offset)
-        buffer[array]
-        return array
+        return buffer
     }
 }

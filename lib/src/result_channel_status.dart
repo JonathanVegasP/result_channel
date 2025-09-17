@@ -1,0 +1,1 @@
+enum ResultChannelStatus { ok, error }

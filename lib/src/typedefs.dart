@@ -1,45 +1,114 @@
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
+
+import 'result_dart.dart';
 import 'result_native.dart';
 
-typedef ResultChannelVoidFunction = NativeFunction<Void Function()>;
+typedef CallbackNative = Void Function(Pointer<ResultNative>);
 
-typedef ResultChannelVoidFunctionDart = void Function();
+typedef RegisterClassNative = Void Function(Pointer<Utf8> javaClassName);
 
-typedef ResultChannelVoidFunctionWithArgs =
-    NativeFunction<Void Function(Pointer<ResultNative>)>;
+typedef RegisterClassDart = void Function(Pointer<Utf8> javaClassName);
 
-typedef ResultChannelVoidFunctionWithArgsDart =
-    void Function(Pointer<ResultNative>);
+typedef CallStaticVoidNative =
+    Void Function(Pointer<Utf8> javaClassName, Pointer<Utf8> methodName);
 
-typedef ResultChannelFunction =
-    NativeFunction<Pointer<ResultNative> Function()>;
+typedef CallStaticVoidDart =
+    void Function(Pointer<Utf8> javaClassName, Pointer<Utf8> methodName);
 
-typedef ResultChannelFunctionDart = Pointer<ResultNative> Function();
+typedef CallStaticVoidWithArgsNative =
+    Void Function(
+      Pointer<Utf8> javaClassName,
+      Pointer<Utf8> methodName,
+      Pointer<ResultNative> args,
+    );
 
-typedef ResultChannelFunctionWithArgs =
-    NativeFunction<Pointer<ResultNative> Function(Pointer<ResultNative>)>;
+typedef CallStaticVoidWithArgsDart =
+    void Function(
+      Pointer<Utf8> javaClassName,
+      Pointer<Utf8> methodName,
+      Pointer<ResultNative> args,
+    );
 
-typedef ResultChannelFunctionWithArgsDart =
-    Pointer<ResultNative> Function(Pointer<ResultNative>);
+typedef CallStaticReturnNative =
+    Pointer<ResultNative> Function(
+      Pointer<Utf8> javaClassName,
+      Pointer<Utf8> methodName,
+    );
 
-typedef ResultChannelCallback = Void Function(Pointer<ResultNative>);
+typedef CallStaticReturnDart =
+    Pointer<ResultNative> Function(
+      Pointer<Utf8> javaClassName,
+      Pointer<Utf8> methodName,
+    );
 
-typedef ResultChannelCallbackNative =
-    Pointer<NativeFunction<ResultChannelCallback>>;
+typedef CallStaticReturnWithArgsNative =
+    Pointer<ResultNative> Function(
+      Pointer<Utf8> javaClassName,
+      Pointer<Utf8> methodName,
+      Pointer<ResultNative> args,
+    );
 
-typedef ResultChannelCallbackDart = void Function(Pointer<ResultNative>);
+typedef CallStaticReturnWithArgsDart =
+    Pointer<ResultNative> Function(
+      Pointer<Utf8> javaClassName,
+      Pointer<Utf8> methodName,
+      Pointer<ResultNative> args,
+    );
 
-typedef ResultChannelCallbackFunction =
-    NativeFunction<Void Function(ResultChannelCallbackNative)>;
+typedef CallStaticVoidAsyncNative =
+    Void Function(
+      Pointer<Utf8> javaClassName,
+      Pointer<Utf8> methodName,
+      Pointer<NativeFunction<CallbackNative>> callback,
+    );
 
-typedef ResultChannelCallbackFunctionDart =
-    void Function(ResultChannelCallbackNative);
+typedef CallStaticVoidAsyncDart =
+    void Function(
+      Pointer<Utf8> javaClassName,
+      Pointer<Utf8> methodName,
+      Pointer<NativeFunction<CallbackNative>> callback,
+    );
 
-typedef ResultChannelCallbackFunctionWithArgs =
-    NativeFunction<
-      Void Function(Pointer<ResultNative>, ResultChannelCallbackNative)
-    >;
+typedef CallStaticVoidAsyncWithArgsNative =
+    Void Function(
+      Pointer<Utf8> javaClassName,
+      Pointer<Utf8> methodName,
+      Pointer<NativeFunction<CallbackNative>> callback,
+      Pointer<ResultNative> args,
+    );
 
-typedef ResultChannelCallbackFunctionWithArgsDart =
-    void Function(Pointer<ResultNative>, ResultChannelCallbackNative);
+typedef CallStaticVoidAsyncWithArgsDart =
+    void Function(
+      Pointer<Utf8> javaClassName,
+      Pointer<Utf8> methodName,
+      Pointer<NativeFunction<CallbackNative>> callback,
+      Pointer<ResultNative> args,
+    );
+
+typedef FreePointerNative = Void Function(Pointer<Void> pointer);
+
+typedef FreePointerDart = void Function(Pointer<Void> pointer);
+
+typedef AsyncCallbackRecord = ({
+  Pointer<NativeFunction<CallbackNative>> nativeFunction,
+  Future<ResultDart> future,
+});
+
+abstract final class FlutterResultChannelFunctions {
+  static const String registerClass = 'flutter_result_channel_register_class';
+  static const String callStaticVoid =
+      'flutter_result_channel_call_static_void';
+  static const String callStaticVoidWithArgs =
+      'flutter_result_channel_call_static_void_with_args';
+  static const String callStaticReturn =
+      'flutter_result_channel_call_static_return';
+  static const String callStaticReturnWithArgs =
+      'flutter_result_channel_call_static_return_with_args';
+  static const String callStaticVoidAsync =
+      'flutter_result_channel_call_static_void_async';
+  static const String callStaticVoidAsyncWithArgs =
+      'flutter_result_channel_call_static_void_async_with_args';
+  static const String freePointer = 'flutter_result_channel_free_pointer';
+}

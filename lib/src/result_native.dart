@@ -6,6 +6,6 @@ final class ResultNative extends Struct {
 
   external Pointer<Uint8> data;
 
-  @Int32()
+  @Size()
   external int size;
 }

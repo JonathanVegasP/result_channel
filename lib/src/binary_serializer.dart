@@ -6,7 +6,7 @@ import 'binary_writer.dart';
 import 'serializer.dart';
 import 'writer.dart';
 
-class BinarySerializer implements Serializer<Uint8List> {
+class BinarySerializer implements Serializer {
   const BinarySerializer();
 
   static const int _NULL = 0x00;
@@ -29,7 +29,6 @@ class BinarySerializer implements Serializer<Uint8List> {
   static const int _MAX_CHAR = 0xFF;
   static const int _MAX_CHAR_VALUE = 0xFFFF;
 
-  @pragma('vm:prefer-inline')
   static void _writeSize(Writer writer, int value) {
     switch (value) {
       case < _MAX_BYTES:
@@ -43,7 +42,6 @@ class BinarySerializer implements Serializer<Uint8List> {
     }
   }
 
-  @pragma('vm:prefer-inline')
   static void _append(Writer writer, dynamic value) {
     switch (value) {
       case Null _:
@@ -147,7 +145,6 @@ class BinarySerializer implements Serializer<Uint8List> {
     }
   }
 
-  @pragma('vm:prefer-inline')
   static int _readSize(BinaryReader reader) {
     final typeByte = reader.readByte();
     return switch (typeByte) {
@@ -157,7 +154,6 @@ class BinarySerializer implements Serializer<Uint8List> {
     };
   }
 
-  @pragma('vm:prefer-inline')
   static Object? _read(BinaryReader reader) {
     final type = reader.readByte();
     switch (type) {
@@ -213,7 +209,6 @@ class BinarySerializer implements Serializer<Uint8List> {
     }
   }
 
-  @pragma('vm:prefer-inline')
   @override
   Uint8List serialize(Object? value) {
     final writer = BinaryWriter();
@@ -221,7 +216,6 @@ class BinarySerializer implements Serializer<Uint8List> {
     return writer.toUint8List();
   }
 
-  @pragma('vm:prefer-inline')
   @override
   Object? deserialize(Uint8List value) {
     final reader = BinaryReader(value);

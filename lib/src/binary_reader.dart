@@ -6,7 +6,7 @@ import 'reader.dart';
 class BinaryReader implements Reader {
   final Uint8List _byteArray;
   final ByteData _byteData;
-  static final Endian _ORDER = Endian.host;
+  final Endian _order = Endian.host;
 
   int _offset = 0;
 
@@ -16,71 +16,62 @@ class BinaryReader implements Reader {
         _byteArray.lengthInBytes,
       );
 
-  @pragma("vm:prefer-inline")
   void _readPadding(int alignment) {
     final align = alignment - 1;
     _offset = (_offset + align) & ~align;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   int readByte() {
     return _byteData.getUint8( _offset++);
   }
 
-  @pragma("vm:prefer-inline")
   @override
   int readChar() {
     _readPadding(Int16List.bytesPerElement);
-    final value = _byteData.getUint16(_offset, _ORDER);
+    final value = _byteData.getUint16(_offset, _order);
     _offset += Int16List.bytesPerElement;
     return value;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   int readInt() {
     _readPadding(Int32List.bytesPerElement);
-    final value = _byteData.getInt32(_offset, _ORDER);
+    final value = _byteData.getInt32(_offset, _order);
     _offset += Int32List.bytesPerElement;
     return value;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   int readLong() {
     _readPadding(Int64List.bytesPerElement);
-    final value = _byteData.getInt64(_offset, _ORDER);
+    final value = _byteData.getInt64(_offset, _order);
     _offset += Int64List.bytesPerElement;
     return value;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   double readFloat() {
     _readPadding(Float32List.bytesPerElement);
-    final value = _byteData.getFloat32(_offset, _ORDER);
+    final value = _byteData.getFloat32(_offset, _order);
     _offset += Float32List.bytesPerElement;
     return value;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   double readDouble() {
     _readPadding(Float64List.bytesPerElement);
-    final value = _byteData.getFloat64(_offset, _ORDER);
+    final value = _byteData.getFloat64(_offset, _order);
     _offset += Float64List.bytesPerElement;
     return value;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   String readString(int size) {
     final bytes = readUint8List(size);
     return utf8.decoder.convert(bytes);
   }
 
-  @pragma("vm:prefer-inline")
   @override
   Uint8List readUint8List(int size) {
     final bytes = Uint8List.sublistView(_byteArray, _offset, _offset + size);
@@ -88,7 +79,6 @@ class BinaryReader implements Reader {
     return bytes;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   Int32List readInt32List(int size) {
     _readPadding(Int32List.bytesPerElement);
@@ -97,7 +87,6 @@ class BinaryReader implements Reader {
     return list;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   Int64List readInt64List(int size) {
     _readPadding(Int64List.bytesPerElement);
@@ -106,7 +95,6 @@ class BinaryReader implements Reader {
     return list;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   Float32List readFloat32List(int size) {
     _readPadding(Float32List.bytesPerElement);
@@ -115,7 +103,6 @@ class BinaryReader implements Reader {
     return list;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   Float64List readFloat64List(int size) {
     _readPadding(Float64List.bytesPerElement);

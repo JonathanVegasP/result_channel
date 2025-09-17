@@ -1,7 +1,9 @@
 package dev.jonathanvegasp.result_channel
 
-interface Serializer<T> {
-    fun serialize(value: Any?): T
+import java.nio.ByteBuffer
 
-    fun deserialize(value: T): Any?
+interface Serializer {
+    fun serialize(value: Any?): ByteBuffer
+
+    fun deserialize(value: ByteBuffer): Any?
 }

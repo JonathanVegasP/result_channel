@@ -1,5 +1,7 @@
 package dev.jonathanvegasp.result_channel
 
+import java.nio.ByteBuffer
+
 interface Writer {
     fun byte(value: Byte)
 
@@ -23,5 +25,5 @@ interface Writer {
 
     fun doubleArray(value: DoubleArray)
 
-    fun toByteArray(): ByteArray
+    fun toByteBuffer(): ByteBuffer
 }

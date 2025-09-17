@@ -4,7 +4,7 @@ import 'writer.dart';
 
 class BinaryWriter implements Writer {
   static const int _INITIAL_SIZE = 1024;
-  static final Endian _ORDER = Endian.host;
+  final Endian _order = Endian.host;
 
   Uint8List _buffer = Uint8List(_INITIAL_SIZE);
   final _zeroBuffer = Uint8List(8);
@@ -19,7 +19,6 @@ class BinaryWriter implements Writer {
     );
   }
 
-  @pragma("vm:prefer-inline")
   void _growBufferIfNeeded(int size) {
     final requiredSize = _offset + size;
     final buffer = _buffer;
@@ -39,12 +38,11 @@ class BinaryWriter implements Writer {
 
     _buffer = newBuffer;
     _byteData = newBuffer.buffer.asByteData(
-      buffer.offsetInBytes,
-      buffer.lengthInBytes,
+      newBuffer.offsetInBytes,
+      newBuffer.lengthInBytes,
     );
   }
 
-  @pragma("vm:prefer-inline")
   void _addPaddingIfNeeded(int alignment) {
     final mask = alignment - 1;
     final offset = _offset;
@@ -65,59 +63,52 @@ class BinaryWriter implements Writer {
     _offset = newSize;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   void putByte(int value) {
     _growBufferIfNeeded(1);
     _byteData.setUint8(_offset++, value);
   }
 
-  @pragma("vm:prefer-inline")
   @override
   void putChar(int value) {
     _addPaddingIfNeeded(Int16List.bytesPerElement);
     _growBufferIfNeeded(Int16List.bytesPerElement);
-    _byteData.setUint16(_offset, value, _ORDER);
+    _byteData.setUint16(_offset, value, _order);
     _offset += Int16List.bytesPerElement;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   void putInt(int value) {
     _addPaddingIfNeeded(Int32List.bytesPerElement);
     _growBufferIfNeeded(Int32List.bytesPerElement);
-    _byteData.setInt32(_offset, value, _ORDER);
+    _byteData.setInt32(_offset, value, _order);
     _offset += Int32List.bytesPerElement;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   void putLong(int value) {
     _addPaddingIfNeeded(Int64List.bytesPerElement);
     _growBufferIfNeeded(Int64List.bytesPerElement);
-    _byteData.setInt64(_offset, value, _ORDER);
+    _byteData.setInt64(_offset, value, _order);
     _offset += Int64List.bytesPerElement;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   void putFloat(double value) {
     _addPaddingIfNeeded(Float32List.bytesPerElement);
     _growBufferIfNeeded(Float32List.bytesPerElement);
-    _byteData.setFloat32(_offset, value, _ORDER);
+    _byteData.setFloat32(_offset, value, _order);
     _offset += Float32List.bytesPerElement;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   void putDouble(double value) {
     _addPaddingIfNeeded(Float64List.bytesPerElement);
     _growBufferIfNeeded(Float64List.bytesPerElement);
-    _byteData.setFloat64(_offset, value, _ORDER);
+    _byteData.setFloat64(_offset, value, _order);
     _offset += Float64List.bytesPerElement;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   void putUint8List(Uint8List value) {
     final size = value.length;
@@ -126,7 +117,6 @@ class BinaryWriter implements Writer {
     _offset += size;
   }
 
-  @pragma("vm:prefer-inline")
   @override
   void putInt32List(Int32List value) {
     _addPaddingIfNeeded(Int32List.bytesPerElement);
@@ -137,7 +127,6 @@ class BinaryWriter implements Writer {
     putUint8List(bytes);
   }
 
-  @pragma("vm:prefer-inline")
   @override
   void putInt64List(Int64List value) {
     _addPaddingIfNeeded(Int64List.bytesPerElement);
@@ -148,7 +137,6 @@ class BinaryWriter implements Writer {
     putUint8List(bytes);
   }
 
-  @pragma("vm:prefer-inline")
   @override
   void putFloat32List(Float32List value) {
     _addPaddingIfNeeded(Float32List.bytesPerElement);
@@ -159,7 +147,6 @@ class BinaryWriter implements Writer {
     putUint8List(bytes);
   }
 
-  @pragma("vm:prefer-inline")
   @override
   void putFloat64List(Float64List value) {
     _addPaddingIfNeeded(Float64List.bytesPerElement);
@@ -170,7 +157,6 @@ class BinaryWriter implements Writer {
     putUint8List(bytes);
   }
 
-  @pragma("vm:prefer-inline")
   @override
   Uint8List toUint8List() {
     return _byteData.buffer.asUint8List(0, _offset);

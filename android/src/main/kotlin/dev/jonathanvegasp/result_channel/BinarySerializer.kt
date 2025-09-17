@@ -1,6 +1,8 @@
 package dev.jonathanvegasp.result_channel
 
-class BinarySerializer : Serializer<ByteArray> {
+import java.nio.ByteBuffer
+
+class BinarySerializer : Serializer {
     companion object {
         private const val NULL: Byte = 0x00
         private const val TRUE: Byte = 0x01
@@ -22,6 +24,7 @@ class BinarySerializer : Serializer<ByteArray> {
         private const val MAX_CHAR = 0xFF
         private const val MAX_CHAR_VALUE = 0xFFFF
 
+        @JvmStatic
         private fun writeSize(writer: Writer, value: Int) = when {
             value < MAX_BYTES -> writer.byte(value.toByte())
 
@@ -36,11 +39,13 @@ class BinarySerializer : Serializer<ByteArray> {
             }
         }
 
+        @JvmStatic
         private fun writeByteArray(writer: Writer, value: ByteArray) {
             writeSize(writer, value.size)
             writer.byteArray(value)
         }
 
+        @JvmStatic
         private fun append(writer: Writer, value: Any?) {
             when (value) {
                 null -> writer.byte(NULL)
@@ -133,6 +138,7 @@ class BinarySerializer : Serializer<ByteArray> {
             }
         }
 
+        @JvmStatic
         private fun readSize(reader: Reader): Int {
             val value = reader.byte().toInt() and 0xFF
             return when {
@@ -142,6 +148,7 @@ class BinarySerializer : Serializer<ByteArray> {
             }
         }
 
+        @JvmStatic
         private fun read(reader: Reader): Any? {
             val type = reader.byte()
             return when (type) {
@@ -157,6 +164,7 @@ class BinarySerializer : Serializer<ByteArray> {
                 LONG_ARRAY -> reader.longArray(readSize(reader))
                 FLOAT_ARRAY -> reader.floatArray(readSize(reader))
                 DOUBLE_ARRAY -> reader.doubleArray(readSize(reader))
+
                 LIST -> {
                     val size = readSize(reader)
                     val array = ArrayList<Any?>(size)
@@ -189,16 +197,16 @@ class BinarySerializer : Serializer<ByteArray> {
         }
     }
 
-    override fun serialize(value: Any?): ByteArray {
+    override fun serialize(value: Any?): ByteBuffer {
         val writer = BinaryWriter()
 
         append(writer, value)
 
-        return writer.toByteArray()
+        return writer.toByteBuffer()
     }
 
 
-    override fun deserialize(value: ByteArray): Any? {
+    override fun deserialize(value: ByteBuffer): Any? {
         val reader = BinaryReader(value)
 
         return read(reader)

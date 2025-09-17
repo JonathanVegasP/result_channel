@@ -4,55 +4,43 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 #include <jni.h>
 
 #define FFI_PLUGIN_EXPORT __attribute__((visibility("default")))
 
-extern "C" {
-struct FFI_PLUGIN_EXPORT JNIEnvAttachGuard {
-private:
-    JavaVM *vm;
-    JNIEnv *env;
-    bool attached;
-public:
-    explicit JNIEnvAttachGuard(JavaVM *javaVm);
+#define JAVA_CLASS "java/lang/Class"
 
-    ~JNIEnvAttachGuard();
+#define JAVA_CLASS_LOADER "java/lang/ClassLoader"
 
-    operator JNIEnv *() const;
+#define METHOD_GET_CLASS_LOADER "getClassLoader"
 
-    [[nodiscard]] JNIEnv *get() const;
+#define RETURN_GET_CLASS_LOADER "()L" JAVA_CLASS_LOADER ";"
 
-    JNIEnvAttachGuard(const JNIEnvAttachGuard &) = delete;
+#define METHOD_LOAD_CLASS "loadClass"
 
-    JNIEnvAttachGuard &operator=(const JNIEnvAttachGuard &) = delete;
+#define RETURN_LOAD_CLASS "(Ljava/lang/String;)Ljava/lang/Class;"
 
-    JNIEnvAttachGuard(JNIEnvAttachGuard &&other) noexcept;
+#define RESULT_CHANNEL_CLASS "dev/jonathanvegasp/result_channel/ResultChannel"
 
-    JNIEnvAttachGuard &operator=(JNIEnvAttachGuard &&other) noexcept;
-};
+#define CONSTRUCTOR "<init>"
 
-struct FFI_PLUGIN_EXPORT JNILocalRefGuard {
-private:
-    JNIEnv *env;
-    jobject ref;
-public:
-    explicit JNILocalRefGuard(JNIEnv *jniEnv, jobject jniRef);
+#define RESULT_CHANNEL_CONSTRUCTOR_ARGS "(J)V"
 
-    ~JNILocalRefGuard();
+#define BYTE_BUFFER_CLASS "java/nio/ByteBuffer"
 
-    operator jobject() const;
+#define CALL_VOID_METHOD "()V"
 
-    [[nodiscard]] jobject get() const;
+#define CALL_VOID_WITH_ARGS_METHOD "(L" BYTE_BUFFER_CLASS ";)V"
 
-    JNILocalRefGuard(const JNILocalRefGuard &) = delete;
+#define CALL_RETURN_METHOD "()L" BYTE_BUFFER_CLASS ";"
 
-    JNILocalRefGuard &operator=(const JNILocalRefGuard &) = default;
+#define CALL_RETURN_WITH_ARGS_METHOD "(L" BYTE_BUFFER_CLASS ";)L" BYTE_BUFFER_CLASS ";"
 
-    JNILocalRefGuard(JNILocalRefGuard &&other) noexcept;
+#define CALL_ASYNC_METHOD "(L" RESULT_CHANNEL_CLASS ";)V"
 
-    JNILocalRefGuard &operator=(JNILocalRefGuard &&other) noexcept;
-};
+#define CALL_ASYNC_WITH_ARGS_METHOD "(L" RESULT_CHANNEL_CLASS ";L" BYTE_BUFFER_CLASS ";)V"
+
 
 typedef enum {
     ResultChannelStatusOk = 0,
@@ -62,75 +50,39 @@ typedef enum {
 typedef struct {
     ResultChannelStatus status;
     uint8_t *data;
-    int32_t size;
+    size_t size;
 } ResultNative;
 
 typedef void (*Callback)(ResultNative *);
 
-struct FFI_PLUGIN_EXPORT ResultChannelInstanceGuard {
-private:
-    JNIEnv *env;
-    jobject instance;
-public:
-    explicit ResultChannelInstanceGuard(JNIEnv *env, Callback callback);
 
-    ~ResultChannelInstanceGuard();
+FFI_PLUGIN_EXPORT void flutter_result_channel_register_class(const char *java_class_name);
 
-    operator jobject() const;
+FFI_PLUGIN_EXPORT void
+flutter_result_channel_call_static_void(const char *java_class_name, const char *method_name);
 
-    [[nodiscard]] jobject get() const;
+FFI_PLUGIN_EXPORT void
+flutter_result_channel_call_static_void_with_args(const char *java_class_name,
+                                                  const char *method_name,
+                                                  const ResultNative *args);
 
-    ResultChannelInstanceGuard(const ResultChannelInstanceGuard &) = delete;
+FFI_PLUGIN_EXPORT ResultNative *
+flutter_result_channel_call_static_return(const char *java_class_name, const char *method_name);
 
-    ResultChannelInstanceGuard &operator=(const ResultChannelInstanceGuard &) = delete;
+FFI_PLUGIN_EXPORT ResultNative *
+flutter_result_channel_call_static_return_with_args(const char *java_class_name,
+                                                    const char *method_name,
+                                                    const ResultNative *args);
 
-    ResultChannelInstanceGuard(ResultChannelInstanceGuard &&other) noexcept;
+FFI_PLUGIN_EXPORT void
+flutter_result_channel_call_static_void_async(const char *java_class_name, const char *method_name,
+                                              Callback callback);
 
-    ResultChannelInstanceGuard &operator=(ResultChannelInstanceGuard &&other) noexcept;
-};
-
-struct FFI_PLUGIN_EXPORT JavaByteArrayGuard {
-private:
-    ResultNative *result;
-public:
-    explicit JavaByteArrayGuard(ResultChannelStatus status, JNIEnv *env, jbyteArray jbyteArray1);
-
-    operator ResultNative *() const;
-
-    [[nodiscard]] ResultNative *get() const;
-
-    JavaByteArrayGuard(const JavaByteArrayGuard &) = delete;
-
-    JavaByteArrayGuard &operator=(const JavaByteArrayGuard &) = default;
-
-    JavaByteArrayGuard(JavaByteArrayGuard &&other) noexcept;
-
-    JavaByteArrayGuard &operator=(JavaByteArrayGuard &&other) noexcept;
-};
-
-struct FFI_PLUGIN_EXPORT DartByteArrayGuard {
-private:
-    JNIEnv *env;
-    jbyteArray result;
-public:
-    explicit DartByteArrayGuard(JNIEnv *env, ResultNative *result);
-
-    ~DartByteArrayGuard();
-
-    operator jbyteArray() const;
-
-    [[nodiscard]] jbyteArray get() const;
-
-    DartByteArrayGuard(const DartByteArrayGuard &) = delete;
-
-    DartByteArrayGuard &operator=(const DartByteArrayGuard &) = delete;
-
-    DartByteArrayGuard(DartByteArrayGuard &&other) noexcept;
-
-    DartByteArrayGuard &operator=(DartByteArrayGuard &&other) noexcept;
-};
+FFI_PLUGIN_EXPORT void
+flutter_result_channel_call_static_void_async_with_args(const char *java_class_name,
+                                                        const char *method_name, Callback callback,
+                                                        ResultNative *args);
 
 FFI_PLUGIN_EXPORT void flutter_result_channel_free_pointer(void *pointer);
-}
 
 #endif
