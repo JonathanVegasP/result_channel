@@ -86,7 +86,7 @@ abstract final class ResultChannel {
       )
       .asFunction<CallStaticReturnDart>();
 
-  static final CallStaticReturnWithArgsDart _callStaticReturnWithArgs = _lib
+  static final CallStaticReturnWithArgsDart callStaticReturnWithArgsRaw = _lib
       .lookup<NativeFunction<CallStaticReturnWithArgsNative>>(
         FlutterResultChannelFunctions.callStaticReturnWithArgs,
       )
@@ -98,7 +98,7 @@ abstract final class ResultChannel {
       )
       .asFunction<CallStaticVoidAsyncDart>();
 
-  static final CallStaticVoidAsyncWithArgsDart _callStaticVoidAsyncWithArgs =
+  static final CallStaticVoidAsyncWithArgsDart callStaticVoidAsyncWithArgsRaw =
       _lib
           .lookup<NativeFunction<CallStaticVoidAsyncWithArgsNative>>(
             FlutterResultChannelFunctions.callStaticVoidAsyncWithArgs,
@@ -162,7 +162,7 @@ abstract final class ResultChannel {
     final methodNamePtr = methodName.toNativeUtf8();
     final native = args.toNative();
     try {
-      return _callStaticReturnWithArgs(
+      return callStaticReturnWithArgsRaw(
         classNamePtr,
         methodNamePtr,
         native,
@@ -206,7 +206,7 @@ abstract final class ResultChannel {
     final nativeArgs = args.toNative();
 
     try {
-      _callStaticVoidAsyncWithArgs(
+      callStaticVoidAsyncWithArgsRaw(
         classNamePtr,
         methodNamePtr,
         callback.nativeFunction,
