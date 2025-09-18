@@ -64,16 +64,7 @@ android {
         minSdk = 21
         externalNativeBuild {
             cmake {
-                arguments "--Wl,--gc-sections",
-                        "-Wl,--strip-all",
-                        "-Wl,--as-needed",
-                        "-Wl,-z,relro,-z,now",
-                        "-Wl,--no-undefined",
-                        "-Wl,--hash-style=gnu",
-                        "-Wl,--build-id=none",
-                        "-Wl,--sort-common",
-                        "-Wl,--sort-section=name",
-                        "-DCMAKE_EXE_LINKER_FLAGS=-Wl,--gc-sections -Wl,--strip-all -Wl,--as-needed -Wl,-z,relro,-z,now -Wl,--no-undefined -Wl,--hash-style=gnu -Wl,--build-id=none -Wl,--sort-common -Wl,--sort-section=name"
+                arguments "-DCMAKE_EXE_LINKER_FLAGS=-Wl,--gc-sections -Wl,--strip-all -Wl,--as-needed -Wl,-z,relro,-z,now -Wl,--no-undefined -Wl,--hash-style=gnu -Wl,--build-id=none -Wl,--sort-common -Wl,--sort-section=name"
 
 
                 cFlags "-O2",

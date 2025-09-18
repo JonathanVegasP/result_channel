@@ -218,9 +218,24 @@ FFI_PLUGIN_EXPORT void flutter_result_channel_register_class(const char *java_cl
 
     jclass local_cls = (*env)->CallObjectMethod(env, g_appClassLoader, g_loadClassLoader, name);
 
+    if((*env)->ExceptionCheck(env)) {
+        (*env)->ExceptionDescribe(env);  // Printa o stack trace
+        (*env)->ExceptionClear(env);     // Limpa a exception
+        (*env)->DeleteLocalRef(env, name);
+        return;  // Sai da função em caso de erro
+    }
+
     (*env)->DeleteLocalRef(env, name);
 
     jclass cls = (*env)->NewGlobalRef(env, local_cls);
+
+    if((*env)->ExceptionCheck(env)) {
+        (*env)->ExceptionDescribe(env);  // Printa o stack trace
+        (*env)->ExceptionClear(env);     // Limpa a exception
+        (*env)->DeleteLocalRef(env, name);
+        (*env)->DeleteLocalRef(env, local_cls);
+        return;  // Sai da função em caso de erro
+    }
 
     (*env)->DeleteLocalRef(env, local_cls);
 
