@@ -64,52 +64,28 @@ android {
         minSdk = 21
         externalNativeBuild {
             cmake {
-                abiFilters "armeabi-v7a", "arm64-v8a", "x86_64"
-
-                arguments "-Wl,--no-undefined",
-                        "-Wl,--exclude-libs,ALL",
+                arguments "--Wl,--gc-sections",
                         "-Wl,--strip-all",
-                        "-Wl,--gc-sections",
                         "-Wl,--as-needed",
-                        "-Wl,-z,relro",
-                        "-Wl,-z,now",
-                        "-Wl,-z,nocopyreloc",
-                        "-Wl,--icf=all",
+                        "-Wl,-z,relro,-z,now",
+                        "-Wl,--no-undefined",
                         "-Wl,--hash-style=gnu",
-                        "-Wl,--sort-section=name",
-                        "-Wl,--sort-common",
-                        "-Wl,--no-gnu-unique",
-                        "-Wl,--no-ident",
-                        "-Wl,--no-undefined-version",
-                        "-Wl,--relax",
                         "-Wl,--build-id=none",
-                        "-Wl,--no-keep-memory",
-                        "-Wl,--no-rosegment",
-                        "-DANDROID_STL=none"
+                        "-Wl,--sort-common",
+                        "-Wl,--sort-section=name",
+                        "-DCMAKE_EXE_LINKER_FLAGS=-Wl,--gc-sections -Wl,--strip-all -Wl,--as-needed -Wl,-z,relro,-z,now -Wl,--no-undefined -Wl,--hash-style=gnu -Wl,--build-id=none -Wl,--sort-common -Wl,--sort-section=name"
 
-                cppFlags "-O2",
+
+                cFlags "-O2",
                         "-flto",
                         "-ffunction-sections",
                         "-fdata-sections",
                         "-fvisibility=hidden",
                         "-DNDEBUG",
                         "-g0",
-                        "-fno-exceptions",
-                        "-fno-rtti",
                         "-fno-unwind-tables",
                         "-fno-asynchronous-unwind-tables",
-                        "-fno-stack-protector",
-                        "-fno-threadsafe-statics",
-                        "-fno-use-cxa-atexit",
-                        "-nostdlib++",
-                        "-nostdinc++",
-                        "-fno-ident",
-                        "-fno-stack-clash-protection",
-                        "-fno-stack-check",
-                        "-fno-math-errno",
-                        "-fmerge-constants",
-                        "-fno-keep-inline-functions",
-                        "-fno-keep-static-consts"
+                        "-fno-ident"
             }
         }
     }
