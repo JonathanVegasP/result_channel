@@ -81,12 +81,6 @@ android {
         }
     }
 
-    packagingOptions {
-        jniLibs {
-            excludes += ['**/libresult_channel.so', '**/libc++_shared.so']
-        }
-    }
-
     dependencies {
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.mockito:mockito-core:5.18.0")

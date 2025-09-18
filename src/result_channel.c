@@ -64,7 +64,7 @@ static void hashmap_resize(HashMap *map) {
     map->size = new_size;
 }
 
-static void hashmap_put(HashMap *map, const char *key, jclass *value) {
+static void hashmap_put(HashMap *map, const char *key, jobject value) {
     if ((float) map->count > (float) map->size * 0.75F) {
         hashmap_resize(map);
     }
