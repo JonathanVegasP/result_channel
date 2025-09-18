@@ -1,4 +1,5 @@
 #include "include/result_channel.h"
+#include <android/log.h>
 
 static JavaVM *g_jvm = NULL;
 static jclass g_resultChannel = NULL;
@@ -212,34 +213,66 @@ static JNIEnv *get_env(JavaVM *jvm) {
 }
 
 FFI_PLUGIN_EXPORT void flutter_result_channel_register_class(const char *java_class_name) {
+    if (!java_class_name) {
+        __android_log_print(ANDROID_LOG_ERROR, "FFI", "java_class_name is NULL");
+        return;
+    }
+
+    __android_log_print(ANDROID_LOG_DEBUG, "FFI", "Registering class: %s", java_class_name);
+
     JNIEnv *env = get_env(g_jvm);
-
-    jstring name = (*env)->NewStringUTF(env, java_class_name);
-
-    jclass local_cls = (*env)->CallObjectMethod(env, g_appClassLoader, g_loadClassLoader, name);
+    if (!env) {
+        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Failed to get JNI env");
+        return;
+    }
 
     if((*env)->ExceptionCheck(env)) {
-        (*env)->ExceptionDescribe(env);  // Printa o stack trace
-        (*env)->ExceptionClear(env);     // Limpa a exception
+        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Pending exception before operation");
+        (*env)->ExceptionDescribe(env);
+        (*env)->ExceptionClear(env);
+        return;
+    }
+
+    jstring name = (*env)->NewStringUTF(env, java_class_name);
+    if (!name) {
+        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Failed to create jstring");
+        return;
+    }
+
+    jclass local_cls = (*env)->CallObjectMethod(env, g_appClassLoader, g_loadClassLoader, name);
+    if((*env)->ExceptionCheck(env)) {
+        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Exception during class loading");
+        (*env)->ExceptionDescribe(env);
+        (*env)->ExceptionClear(env);
         (*env)->DeleteLocalRef(env, name);
-        return;  // Sai da função em caso de erro
+        return;
+    }
+
+    if (!local_cls) {
+        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Class not found: %s", java_class_name);
+        (*env)->DeleteLocalRef(env, name);
+        return;
     }
 
     (*env)->DeleteLocalRef(env, name);
 
     jclass cls = (*env)->NewGlobalRef(env, local_cls);
-
-    if((*env)->ExceptionCheck(env)) {
-        (*env)->ExceptionDescribe(env);  // Printa o stack trace
-        (*env)->ExceptionClear(env);     // Limpa a exception
-        (*env)->DeleteLocalRef(env, name);
-        (*env)->DeleteLocalRef(env, local_cls);
-        return;  // Sai da função em caso de erro
-    }
-
     (*env)->DeleteLocalRef(env, local_cls);
 
+    if (!cls) {
+        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Failed to create global ref");
+        return;
+    }
+
+    if (!g_map) {
+        __android_log_print(ANDROID_LOG_ERROR, "FFI", "g_map is NULL");
+        return;
+    }
+
+    __android_log_print(ANDROID_LOG_DEBUG, "FFI", "Adding to hashmap: %s", java_class_name);
     hashmap_put(g_map, java_class_name, cls);
+
+    __android_log_print(ANDROID_LOG_DEBUG, "FFI", "Successfully registered: %s", java_class_name);
 }
 
 static ResultNative *new_result_native(JNIEnv *env, jobject byteBuffer,
