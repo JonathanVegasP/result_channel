@@ -1,57 +1,219 @@
 # Result Channel
 
-A Flutter plugin infrastructure that provides a simplified abstraction layer for other plugins to implement FFI (Foreign Function Interface) native calls. Think of it as a "Dart Native Interop" helper.
+Uma biblioteca de infraestrutura Flutter que fornece uma camada de abstração simplificada para outros plugins implementarem chamadas nativas FFI (Foreign Function Interface) e JNI (Java Native Interface). Pense nela como um helper para "Dart Native Interop".
 
-## Overview
+## Visão Geral
 
-**Result Channel** is not an end-user plugin, but rather a **foundation library** designed to help plugin developers create high-performance native bridges using FFI. It abstracts the complexity of FFI implementation, providing a clean, type-safe interface for calling native functions from Dart.
+**Result Channel** não é um plugin para usuários finais, mas sim uma **biblioteca de fundação** projetada para ajudar desenvolvedores de plugins a criar pontes nativas de alta performance usando FFI e JNI. Ela abstrai a complexidade das chamadas FFI/JNI diretas, fornecendo uma interface limpa e type-safe para chamar funções nativas do Dart.
 
-## Purpose
+## Propósito
 
-This plugin serves as:
+Este plugin serve como:
 
--   **Infrastructure Layer**: Foundation for other plugins to build upon
--   **FFI Abstraction**: Simplifies the complexity of direct FFI calls
--   **Type Safety**: Provides strongly-typed interfaces between Dart and native code
--   **Performance Optimization**: Enables synchronous, high-performance native calls
--   **Cross-Platform Bridge**: Unified interface for Android and iOS native interop
+-   **Camada de Infraestrutura**: Base para outros plugins construírem sobre
+-   **Abstração FFI/JNI**: Simplifica a complexidade de chamadas FFI e JNI diretas
+-   **Type Safety**: Fornece interfaces fortemente tipadas entre Dart e código nativo
+-   **Otimização de Performance**: Habilita chamadas nativas síncronas e assíncronas de alta performance
+-   **Ponte Cross-Platform**: Interface unificada para interoperabilidade nativa Android e iOS
+-   **Serialização Binária**: Sistema eficiente de serialização para transferência de dados entre Dart e código nativo
 
-## Architecture
+## Arquitetura
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Flutter Application                      │
+│                  Aplicação Flutter                         │
 ├─────────────────────────────────────────────────────────────┤
-│                    Your Plugin                              │
+│                   Seu Plugin                                │
 ├─────────────────────────────────────────────────────────────┤
-│                   Result Channel                            │
-│                (FFI Abstraction Layer)                      │
+│                 Result Channel                              │
+│           (Camada de Abstração FFI/JNI)                    │
 ├─────────────────────────────────────────────────────────────┤
-│              Native Libraries (C/C++)                       │
+│         Bibliotecas Nativas (C/C++/Java/Kotlin)            │
 │                  Android / iOS                              │
 └─────────────────────────────────────────────────────────────┘
-````
+```
 
-## Installation
+## Instalação
 
-Add this to your plugin's `pubspec.yaml`:
+Adicione isto ao `pubspec.yaml` do seu plugin:
 
 ```yaml
 dependencies:
   result_channel:
     git:
-      url: [https://github.com/JonathanVegasP/result_channel.git](https://github.com/JonathanVegasP/result_channel.git)
-````
+      url: https://github.com/JonathanVegasP/result_channel.git
+```
 
-## Example
+## API Principal
 
-For a complete example of how to use Result Channel in a plugin, check out:
+### ResultChannel
 
-**[Flutter Location FFI Plugin](https://github.com/JonathanVegasP/flutter_location_ffi)**
+Classe principal que fornece métodos estáticos para interação com código nativo:
 
-This plugin demonstrates how to use Result Channel to create high-performance native location services with FFI.
+#### Gerenciamento de Classes
+```dart
+// Registra uma classe Java/Kotlin para uso
+ResultChannel.registerClass(String javaClassName)
+```
 
-## Native Library Integration
+#### Chamadas Síncronas
+```dart
+// Chama método estático sem argumentos, sem retorno
+ResultChannel.callStaticVoid(String javaClassName, String methodName)
+
+// Chama método estático com argumentos, sem retorno  
+ResultChannel.callStaticVoidWithArgs(String javaClassName, String methodName, ResultDart args)
+
+// Chama método estático sem argumentos, com retorno
+ResultChannel.callStaticReturn(String javaClassName, String methodName)
+
+// Chama método estático com argumentos e retorno
+ResultChannel.callStaticReturnWithArgs(String javaClassName, String methodName, ResultDart args)
+```
+
+#### Chamadas Assíncronas
+```dart
+// Chama método assíncrono sem argumentos
+Future<ResultDart> callStaticVoidAsync(String javaClassName, String methodName)
+
+// Chama método assíncrono com argumentos
+Future<ResultDart> callStaticVoidAsyncWithArgs(String javaClassName, String methodName, ResultDart args)
+```
+
+### ResultDart
+
+Classe que encapsula dados e status de operações:
+
+```dart
+// Construtores
+ResultDart({required ResultChannelStatus status, required Object? data})
+ResultDart.ok(Object? data)      // Cria resultado de sucesso
+ResultDart.error(Object? data)   // Cria resultado de erro
+
+// Propriedades
+bool get isOk                    // Verifica se operação foi bem-sucedida
+bool get isError                 // Verifica se houve erro
+bool get hasData                 // Verifica se há dados
+ResultChannelStatus status       // Status da operação
+Object? data                     // Dados da operação
+
+// Métodos
+Pointer<ResultNative> toNative() // Converte para estrutura nativa
+```
+
+### ResultChannelStatus
+
+Enum que define os status possíveis:
+
+```dart
+enum ResultChannelStatus { 
+  ok,     // Operação bem-sucedida
+  error   // Erro na operação
+}
+```
+
+### Extensões FFI
+
+Para trabalhar diretamente com ponteiros FFI:
+
+```dart
+extension ResultNativeExt on Pointer<ResultNative> {
+  void free()                    // Libera memória do ponteiro
+  ResultDart toResultDart()      // Converte ponteiro nativo para ResultDart
+}
+```
+
+## Serialização Binária
+
+O Result Channel inclui um sistema robusto de serialização binária que suporta:
+
+### Tipos Primitivos
+- `null`
+- `bool` (true/false)
+- `int` (32-bit e 64-bit automático)
+- `double`
+- `String` (com otimização UTF-8)
+
+### Arrays Tipados
+- `Uint8List` (byte arrays)
+- `Int32List` (int arrays)
+- `Int64List` (long arrays)  
+- `Float32List` (float arrays)
+- `Float64List` (double arrays)
+
+### Coleções
+- `List<dynamic>` (listas heterogêneas)
+- `Set<dynamic>` (conjuntos)
+- `Map<dynamic, dynamic>` (mapas chave-valor)
+
+## Exemplo de Uso em Dart
+
+### Chamadas JNI (Android)
+
+```dart
+import 'package:result_channel/result_channel.dart';
+
+void main() async {
+  // Registrar classe Java
+  ResultChannel.registerClass('com.example.MyNativeClass');
+  
+  // Chamada síncrona simples
+  final result = ResultChannel.callStaticReturn(
+    'com.example.MyNativeClass', 
+    'getData'
+  );
+  
+  if (result.isOk) {
+    print('Dados recebidos: ${result.data}');
+  }
+  
+  // Chamada com argumentos
+  final args = ResultDart.ok({'param1': 'valor', 'param2': 42});
+  final resultWithArgs = ResultChannel.callStaticReturnWithArgs(
+    'com.example.MyNativeClass',
+    'processData',
+    args
+  );
+  
+  // Chamada assíncrona
+  final asyncResult = await ResultChannel.callStaticVoidAsync(
+    'com.example.MyNativeClass',
+    'performAsyncOperation'
+  );
+}
+```
+
+### Chamadas FFI Diretas
+
+```dart
+import 'dart:ffi';
+import 'package:result_channel/result_channel.dart';
+
+// Definir assinatura da função nativa
+typedef NativeAddNumbers = Pointer<ResultNative> Function(Int32 a, Int32 b);
+typedef DartAddNumbers = Pointer<ResultNative> Function(int a, int b);
+
+final DynamicLibrary nativeLib = DynamicLibrary.open('libyour_library.so');
+
+final DartAddNumbers addNumbers = nativeLib
+  .lookup<NativeFunction<NativeAddNumbers>>('add_numbers')
+  .asFunction();
+
+void main() async {
+  // Chamar função nativa
+  final Pointer<ResultNative> resultPtr = addNumbers(2, 3);
+
+  // Converter para ResultDart usando a extensão do ResultChannel
+  final result = resultPtr.toResultDart();
+
+  if (result.isOk) {
+    print('Resultado: ${result.data}');
+  } else {
+    print('Erro ao chamar função nativa');
+  }
+}
+```#
+# Native Library Integration
 
 ### Android Setup
 
@@ -173,66 +335,38 @@ For iOS, you need to include a `.h` header file and use the `@_cdecl` attribute 
     # ... rest of your podspec ...
     ```
 
-## Dart Usage Example
+## Melhores Práticas
 
-Here is a practical example of how a plugin can use `ResultChannel` to call a native FFI function and safely retrieve the result in Dart:
+### Gerenciamento de Memória
 
-```dart
-import 'dart:ffi';
-import 'package:result_channel/result_channel.dart';
+Sempre garanta a limpeza adequada da memória ao trabalhar com ponteiros FFI. Use `toResultDart()` que faz isso automaticamente.
 
-// Define the native function signature (e.g., int32_t add_numbers(int32_t, int32_t))
-typedef NativeAddNumbers = Pointer<ResultNative> Function(Int32 a, Int32 b);
-typedef DartAddNumbers = Pointer<ResultNative> Function(int a, int b);
+### Tratamento de Erros
 
-final DynamicLibrary nativeLib = DynamicLibrary.open('libyour_library.so'); // or .framework on iOS
+Implemente tratamento adequado de erros para chamadas de funções nativas usando `ResultChannelStatus`.
 
-final DartAddNumbers addNumbers = nativeLib
-  .lookup<NativeFunction<NativeAddNumbers>>('add_numbers')
-  .asFunction();
+### Serialização de Dados
 
-void main() async {
-  // Call the native function
-  final Pointer<ResultNative> resultPtr = addNumbers(2, 3);
+O Result Channel usa serialização binária eficiente para transferir dados complexos entre Dart e código nativo. Tipos suportados incluem:
+- Primitivos (int, double, bool, String)
+- Listas e Maps
+- Objetos serializáveis customizados
 
-  // Convert to ResultDart using the ResultChannel extension
-  final result = resultPtr.toResultDart();
+## Contribuindo
 
-  if (result.status == ResultStatus.ok) {
-    print('Result: ${result.data}');
-  } else {
-    print('Error calling native function');
-  }
-}
-```
+Este é código de infraestrutura do qual outros plugins dependem. Ao contribuir:
 
-> **Note:** Adjust the function name, parameters, and library name according to your native code.
+1.  **Mantenha compatibilidade retroativa** - outros plugins dependem da API
+2.  **Adicione testes abrangentes** - garanta confiabilidade para plugins dependentes
+3.  **documente mudanças que quebram compatibilidade** - forneça guias de migração
+4.  **Performance importa** - esta é uma biblioteca focada em performance
 
-## Best Practices
+## Requisitos
 
-### Memory Management
-
-Always ensure proper memory cleanup when working with FFI pointers. Or use toResultDart that do it by itself
-
-### Error Handling
-
-Implement proper error handling for native function calls.
-
-## Contributing
-
-This is infrastructure code that other plugins depend on. When contributing:
-
-1.  **Maintain backward compatibility** - other plugins depend on the API
-2.  **Add comprehensive tests** - ensure reliability for dependent plugins
-3.  **Document breaking changes** - provide migration guides
-4.  **Performance matters** - this is a performance-focused library
-
-## Requirements
-
-  - Flutter SDK: \>= 3.32.0
-  - Dart SDK: \>= 3.8.0
-  - Android: API level 21+ (for FFI support)
-  - iOS: 12.0+ (for FFI support)
+  - Flutter SDK: >= 3.3.0
+  - Dart SDK: >= 3.8.1
+  - Android: API level 21+ (para suporte FFI/JNI)
+  - iOS: 12.0+ (para suporte FFI)
 
 ## License
 
@@ -242,7 +376,6 @@ MIT License - see [LICENSE](https://www.google.com/search?q=LICENSE) file for de
 
   - **Issues**: [GitHub Issues](https://github.com/JonathanVegasP/result_channel/issues)
   - **Documentation**: [Flutter FFI Guide](https://docs.flutter.dev/platform-integration/c-interop)
-  - **Examples**: Check the `example/` directory for usage patterns
 
 -----
 

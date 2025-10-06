@@ -1,12 +1,10 @@
 import 'dart:typed_data';
 
-import 'writer.dart';
-
-class BinaryWriter implements Writer {
-  static const int _INITIAL_SIZE = 1024;
+class BinaryWriter {
+  static const int _initialSize = 1024;
   final Endian _order = Endian.host;
 
-  Uint8List _buffer = Uint8List(_INITIAL_SIZE);
+  Uint8List _buffer = Uint8List(_initialSize);
   final _zeroBuffer = Uint8List(8);
   int _offset = 0;
 
@@ -63,13 +61,11 @@ class BinaryWriter implements Writer {
     _offset = newSize;
   }
 
-  @override
   void putByte(int value) {
     _growBufferIfNeeded(1);
     _byteData.setUint8(_offset++, value);
   }
 
-  @override
   void putChar(int value) {
     _addPaddingIfNeeded(Int16List.bytesPerElement);
     _growBufferIfNeeded(Int16List.bytesPerElement);
@@ -77,7 +73,6 @@ class BinaryWriter implements Writer {
     _offset += Int16List.bytesPerElement;
   }
 
-  @override
   void putInt(int value) {
     _addPaddingIfNeeded(Int32List.bytesPerElement);
     _growBufferIfNeeded(Int32List.bytesPerElement);
@@ -85,7 +80,6 @@ class BinaryWriter implements Writer {
     _offset += Int32List.bytesPerElement;
   }
 
-  @override
   void putLong(int value) {
     _addPaddingIfNeeded(Int64List.bytesPerElement);
     _growBufferIfNeeded(Int64List.bytesPerElement);
@@ -93,15 +87,6 @@ class BinaryWriter implements Writer {
     _offset += Int64List.bytesPerElement;
   }
 
-  @override
-  void putFloat(double value) {
-    _addPaddingIfNeeded(Float32List.bytesPerElement);
-    _growBufferIfNeeded(Float32List.bytesPerElement);
-    _byteData.setFloat32(_offset, value, _order);
-    _offset += Float32List.bytesPerElement;
-  }
-
-  @override
   void putDouble(double value) {
     _addPaddingIfNeeded(Float64List.bytesPerElement);
     _growBufferIfNeeded(Float64List.bytesPerElement);
@@ -109,15 +94,13 @@ class BinaryWriter implements Writer {
     _offset += Float64List.bytesPerElement;
   }
 
-  @override
   void putUint8List(Uint8List value) {
     final size = value.length;
     _growBufferIfNeeded(size);
-    _buffer.setRange(_offset, size, value);
+    _buffer.setRange(_offset, _offset + size, value);
     _offset += size;
   }
 
-  @override
   void putInt32List(Int32List value) {
     _addPaddingIfNeeded(Int32List.bytesPerElement);
     final bytes = value.buffer.asUint8List(
@@ -127,7 +110,6 @@ class BinaryWriter implements Writer {
     putUint8List(bytes);
   }
 
-  @override
   void putInt64List(Int64List value) {
     _addPaddingIfNeeded(Int64List.bytesPerElement);
     final bytes = value.buffer.asUint8List(
@@ -137,7 +119,6 @@ class BinaryWriter implements Writer {
     putUint8List(bytes);
   }
 
-  @override
   void putFloat32List(Float32List value) {
     _addPaddingIfNeeded(Float32List.bytesPerElement);
     final bytes = value.buffer.asUint8List(
@@ -147,7 +128,6 @@ class BinaryWriter implements Writer {
     putUint8List(bytes);
   }
 
-  @override
   void putFloat64List(Float64List value) {
     _addPaddingIfNeeded(Float64List.bytesPerElement);
     final bytes = value.buffer.asUint8List(
@@ -157,7 +137,6 @@ class BinaryWriter implements Writer {
     putUint8List(bytes);
   }
 
-  @override
   Uint8List toUint8List() {
     return _byteData.buffer.asUint8List(0, _offset);
   }

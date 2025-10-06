@@ -1,52 +1,13 @@
 import 'dart:async';
 import 'dart:ffi';
-import 'dart:io';
 
 import 'package:ffi/ffi.dart';
 
-import 'binary_serializer.dart';
-import 'result_channel_status.dart';
+import 'ffi.dart' as lib;
 import 'result_dart.dart';
 import 'result_native.dart';
+import 'result_native_extensions.dart';
 import 'typedefs.dart';
-
-final _lib = (() {
-  const lib = "result_channel";
-
-  return switch (Platform.operatingSystem) {
-    'android' => DynamicLibrary.open('lib$lib.so'),
-    'ios' => DynamicLibrary.open('$lib.framework/$lib'),
-    _ => throw "Current platform is not supported",
-  };
-})();
-
-extension ResultNativeExt on Pointer<ResultNative> {
-  void free() {
-    malloc.free(ref.data);
-    malloc.free(this);
-  }
-
-  ResultDart toResultDart() {
-    final value = ref;
-    final data = value.data;
-    ResultDart resultDart;
-
-    try {
-      final bytes = data.asTypedList(value.size);
-      final serializer = BinarySerializer();
-      final result = serializer.deserialize(bytes);
-      resultDart = ResultDart(
-        status: ResultChannelStatus.values[value.status],
-        data: result,
-      );
-    } finally {
-      ResultChannel.free(data.cast());
-      ResultChannel.free(cast());
-    }
-
-    return resultDart;
-  }
-}
 
 abstract final class ResultChannel {
   static AsyncCallbackRecord _createAsyncCallback() {
@@ -62,53 +23,10 @@ abstract final class ResultChannel {
     );
   }
 
-  static final RegisterClassDart _registerClass = _lib
-      .lookup<NativeFunction<RegisterClassNative>>(
-        FlutterResultChannelFunctions.registerClass,
-      )
-      .asFunction<RegisterClassDart>();
-
-  static final CallStaticVoidDart _callStaticVoid = _lib
-      .lookup<NativeFunction<CallStaticVoidNative>>(
-        FlutterResultChannelFunctions.callStaticVoid,
-      )
-      .asFunction<CallStaticVoidDart>();
-
-  static final CallStaticVoidWithArgsDart _callStaticVoidWithArgs = _lib
-      .lookup<NativeFunction<CallStaticVoidWithArgsNative>>(
-        FlutterResultChannelFunctions.callStaticVoidWithArgs,
-      )
-      .asFunction<CallStaticVoidWithArgsDart>();
-
-  static final CallStaticReturnDart _callStaticReturn = _lib
-      .lookup<NativeFunction<CallStaticReturnNative>>(
-        FlutterResultChannelFunctions.callStaticReturn,
-      )
-      .asFunction<CallStaticReturnDart>();
-
-  static final CallStaticReturnWithArgsDart _callStaticReturnWithArgs = _lib
-      .lookup<NativeFunction<CallStaticReturnWithArgsNative>>(
-        FlutterResultChannelFunctions.callStaticReturnWithArgs,
-      )
-      .asFunction<CallStaticReturnWithArgsDart>();
-
-  static final CallStaticVoidAsyncDart callStaticVoidAsyncRaw = _lib
-      .lookup<NativeFunction<CallStaticVoidAsyncNative>>(
-        FlutterResultChannelFunctions.callStaticVoidAsync,
-      )
-      .asFunction<CallStaticVoidAsyncDart>();
-
-  static final CallStaticVoidAsyncWithArgsDart callStaticVoidAsyncWithArgsRaw =
-      _lib
-          .lookup<NativeFunction<CallStaticVoidAsyncWithArgsNative>>(
-            FlutterResultChannelFunctions.callStaticVoidAsyncWithArgs,
-          )
-          .asFunction<CallStaticVoidAsyncWithArgsDart>();
-
   static void registerClass(String javaClassName) {
     final classNamePtr = javaClassName.toNativeUtf8();
     try {
-      _registerClass(classNamePtr);
+      lib.registerClass(classNamePtr);
     } finally {
       malloc.free(classNamePtr);
     }
@@ -118,7 +36,7 @@ abstract final class ResultChannel {
     final classNamePtr = javaClassName.toNativeUtf8();
     final methodNamePtr = methodName.toNativeUtf8();
     try {
-      _callStaticVoid(classNamePtr, methodNamePtr);
+      lib.callStaticVoid(classNamePtr, methodNamePtr);
     } finally {
       malloc.free(classNamePtr);
       malloc.free(methodNamePtr);
@@ -134,7 +52,7 @@ abstract final class ResultChannel {
     final methodNamePtr = methodName.toNativeUtf8();
     final native = args.toNative();
     try {
-      _callStaticVoidWithArgs(classNamePtr, methodNamePtr, native);
+      lib.callStaticVoidWithArgs(classNamePtr, methodNamePtr, native);
     } finally {
       malloc.free(classNamePtr);
       malloc.free(methodNamePtr);
@@ -146,7 +64,7 @@ abstract final class ResultChannel {
     final classNamePtr = javaClassName.toNativeUtf8();
     final methodNamePtr = methodName.toNativeUtf8();
     try {
-      return _callStaticReturn(classNamePtr, methodNamePtr).toResultDart();
+      return lib.callStaticReturn(classNamePtr, methodNamePtr).toResultDart();
     } finally {
       malloc.free(classNamePtr);
       malloc.free(methodNamePtr);
@@ -162,11 +80,9 @@ abstract final class ResultChannel {
     final methodNamePtr = methodName.toNativeUtf8();
     final native = args.toNative();
     try {
-      return _callStaticReturnWithArgs(
-        classNamePtr,
-        methodNamePtr,
-        native,
-      ).toResultDart();
+      return lib
+          .callStaticReturnWithArgs(classNamePtr, methodNamePtr, native)
+          .toResultDart();
     } finally {
       malloc.free(classNamePtr);
       malloc.free(methodNamePtr);
@@ -179,16 +95,26 @@ abstract final class ResultChannel {
     String methodName,
   ) {
     final callback = _createAsyncCallback();
+
+    callStaticVoidAsyncNative(
+      javaClassName,
+      methodName,
+      callback.nativeFunction,
+    );
+
+    return callback.future;
+  }
+
+  static void callStaticVoidAsyncNative(
+    String javaClassName,
+    String methodName,
+    CallbackNativePointer callback,
+  ) {
     final classNamePtr = javaClassName.toNativeUtf8();
     final methodNamePtr = methodName.toNativeUtf8();
 
     try {
-      callStaticVoidAsyncRaw(
-        classNamePtr,
-        methodNamePtr,
-        callback.nativeFunction,
-      );
-      return callback.future;
+      lib.callStaticVoidAsync(classNamePtr, methodNamePtr, callback);
     } finally {
       malloc.free(classNamePtr);
       malloc.free(methodNamePtr);
@@ -201,18 +127,34 @@ abstract final class ResultChannel {
     ResultDart args,
   ) {
     final callback = _createAsyncCallback();
+
+    callStaticVoidAsyncWithArgsNative(
+      javaClassName,
+      methodName,
+      callback.nativeFunction,
+      args,
+    );
+
+    return callback.future;
+  }
+
+  static void callStaticVoidAsyncWithArgsNative(
+    String javaClassName,
+    String methodName,
+    CallbackNativePointer callback,
+    ResultDart args,
+  ) {
     final classNamePtr = javaClassName.toNativeUtf8();
     final methodNamePtr = methodName.toNativeUtf8();
     final nativeArgs = args.toNative();
 
     try {
-      callStaticVoidAsyncWithArgsRaw(
+      lib.callStaticVoidAsyncWithArgs(
         classNamePtr,
         methodNamePtr,
-        callback.nativeFunction,
+        callback,
         nativeArgs,
       );
-      return callback.future;
     } finally {
       malloc.free(classNamePtr);
       malloc.free(methodNamePtr);
@@ -220,9 +162,5 @@ abstract final class ResultChannel {
     }
   }
 
-  static final FreePointerDart free = _lib
-      .lookup<NativeFunction<FreePointerNative>>(
-        FlutterResultChannelFunctions.freePointer,
-      )
-      .asFunction<FreePointerDart>();
+  static final FreePointerDart free = lib.freePointer;
 }

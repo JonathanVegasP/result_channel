@@ -26,7 +26,7 @@ static HashMap *hashmap_create() {
 
     map->size = 16;
     map->count = 0;
-    map->buckets = malloc(16 * sizeof(HashNode *));
+    map->buckets = calloc(16, sizeof(HashNode *));
 
     return map;
 }
@@ -47,7 +47,7 @@ static void hashmap_resize(HashMap *map) {
     const size_t new_size = old_size << 1;
 
     HashNode **old_buckets = map->buckets;
-    HashNode **new_buckets = malloc(new_size * sizeof(HashNode *));
+    HashNode **new_buckets = calloc(new_size, sizeof(HashNode *));
 
     for (size_t i = 0; i < old_size; i++) {
         HashNode *current = old_buckets[i];
@@ -106,8 +106,7 @@ static void *hashmap_get(HashMap *map, const char *key) {
     const size_t len = strlen(key);
 
     while (current) {
-        if (current->key_length == len &&
-            memcmp(current->key, key, len) == 0) {
+        if (current->key_length == len && memcmp(current->key, key, len) == 0) {
             return current->value;
         }
 
@@ -131,6 +130,7 @@ static void hashmap_free(HashMap *map, JNIEnv *env) {
             free(temp);
         }
     }
+
     free(buckets);
     free(map);
 }
@@ -200,90 +200,53 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     g_loadClassLoader = NULL;
 }
 
-static JNIEnv *get_env(JavaVM *jvm) {
+static JNIEnv *get_env(JavaVM *jvm, bool *attached) {
     JNIEnv *env;
 
     jint status = (*jvm)->GetEnv(jvm, (void **) &env, JNI_VERSION_1_6);
 
     if (status == JNI_EDETACHED) {
         (*jvm)->AttachCurrentThread(jvm, &env, NULL);
+        *attached = true;
+        return env;
     }
+
+    attached = false;
 
     return env;
 }
 
 FFI_PLUGIN_EXPORT void flutter_result_channel_register_class(const char *java_class_name) {
-    if (!java_class_name) {
-        __android_log_print(ANDROID_LOG_ERROR, "FFI", "java_class_name is NULL");
-        return;
-    }
-
-    __android_log_print(ANDROID_LOG_DEBUG, "FFI", "Registering class: %s", java_class_name);
-
-    JNIEnv *env = get_env(g_jvm);
-    if (!env) {
-        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Failed to get JNI env");
-        return;
-    }
-
-    if((*env)->ExceptionCheck(env)) {
-        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Pending exception before operation");
-        (*env)->ExceptionDescribe(env);
-        (*env)->ExceptionClear(env);
-        return;
-    }
+    bool attached;
+    JNIEnv *env = get_env(g_jvm, &attached);
 
     jstring name = (*env)->NewStringUTF(env, java_class_name);
-    if (!name) {
-        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Failed to create jstring");
-        return;
-    }
 
     jclass local_cls = (*env)->CallObjectMethod(env, g_appClassLoader, g_loadClassLoader, name);
-    if((*env)->ExceptionCheck(env)) {
-        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Exception during class loading");
-        (*env)->ExceptionDescribe(env);
-        (*env)->ExceptionClear(env);
-        (*env)->DeleteLocalRef(env, name);
-        return;
-    }
-
-    if (!local_cls) {
-        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Class not found: %s", java_class_name);
-        (*env)->DeleteLocalRef(env, name);
-        return;
-    }
 
     (*env)->DeleteLocalRef(env, name);
 
     jclass cls = (*env)->NewGlobalRef(env, local_cls);
+
     (*env)->DeleteLocalRef(env, local_cls);
 
-    if (!cls) {
-        __android_log_print(ANDROID_LOG_ERROR, "FFI", "Failed to create global ref");
-        return;
+    if (attached) {
+        (*g_jvm)->DetachCurrentThread(g_jvm);
     }
 
-    if (!g_map) {
-        __android_log_print(ANDROID_LOG_ERROR, "FFI", "g_map is NULL");
-        return;
-    }
-
-    __android_log_print(ANDROID_LOG_DEBUG, "FFI", "Adding to hashmap: %s", java_class_name);
     hashmap_put(g_map, java_class_name, cls);
-
-    __android_log_print(ANDROID_LOG_DEBUG, "FFI", "Successfully registered: %s", java_class_name);
 }
 
-static ResultNative *new_result_native(JNIEnv *env, jobject byteBuffer,
-                                       ResultChannelStatus status) {
-    ResultNative *instance = malloc(sizeof(ResultNative));
-    uint8_t *javaBytes = (*env)->GetDirectBufferAddress(env, byteBuffer);
-    jlong length = (*env)->GetDirectBufferCapacity(env, byteBuffer);
+static ResultNative *
+new_result_native(JNIEnv *env, jobject byte_buffer, ResultChannelStatus status) {
+
+    uint8_t *javaBytes = (*env)->GetDirectBufferAddress(env, byte_buffer);
+    jlong length = (*env)->GetDirectBufferCapacity(env, byte_buffer);
     uint8_t *data = malloc(length);
 
     memcpy(data, javaBytes, length);
 
+    ResultNative *instance = malloc(sizeof(ResultNative));
     instance->status = status;
     instance->data = data;
     instance->size = length;
@@ -294,9 +257,14 @@ static ResultNative *new_result_native(JNIEnv *env, jobject byteBuffer,
 FFI_PLUGIN_EXPORT void
 flutter_result_channel_call_static_void(const char *java_class_name, const char *method_name) {
     jclass cls = hashmap_get(g_map, java_class_name);
-    JNIEnv *env = get_env(g_jvm);
+    bool attached;
+    JNIEnv *env = get_env(g_jvm, &attached);
     jmethodID methodId = (*env)->GetStaticMethodID(env, cls, method_name, CALL_VOID_METHOD);
     (*env)->CallStaticVoidMethod(env, cls, methodId);
+
+    if (attached) {
+        (*g_jvm)->DetachCurrentThread(g_jvm);
+    }
 }
 
 FFI_PLUGIN_EXPORT void
@@ -304,22 +272,35 @@ flutter_result_channel_call_static_void_with_args(const char *java_class_name,
                                                   const char *method_name,
                                                   const ResultNative *args) {
     jclass cls = hashmap_get(g_map, java_class_name);
-    JNIEnv *env = get_env(g_jvm);
+    bool attached;
+    JNIEnv *env = get_env(g_jvm, &attached);
     jmethodID methodId = (*env)->GetStaticMethodID(env, cls, method_name,
                                                    CALL_VOID_WITH_ARGS_METHOD);
     jobject byte_buffer = (*env)->NewDirectByteBuffer(env, args->data, (jlong) args->size);
+
     (*env)->CallStaticVoidMethod(env, cls, methodId, byte_buffer);
     (*env)->DeleteLocalRef(env, byte_buffer);
+
+    if (attached) {
+        (*g_jvm)->DetachCurrentThread(g_jvm);
+    }
 }
 
 FFI_PLUGIN_EXPORT ResultNative *
 flutter_result_channel_call_static_return(const char *java_class_name, const char *method_name) {
     jclass cls = hashmap_get(g_map, java_class_name);
-    JNIEnv *env = get_env(g_jvm);
+    bool attached;
+    JNIEnv *env = get_env(g_jvm, &attached);
     jmethodID methodId = (*env)->GetStaticMethodID(env, cls, method_name, CALL_RETURN_METHOD);
     jobject byte_buffer = (*env)->CallStaticObjectMethod(env, cls, methodId);
     ResultNative *result = new_result_native(env, byte_buffer, ResultChannelStatusOk);
+
     (*env)->DeleteLocalRef(env, byte_buffer);
+
+    if (attached) {
+        (*g_jvm)->DetachCurrentThread(g_jvm);
+    }
+
     return result;
 }
 
@@ -328,14 +309,23 @@ flutter_result_channel_call_static_return_with_args(const char *java_class_name,
                                                     const char *method_name,
                                                     const ResultNative *args) {
     jclass cls = hashmap_get(g_map, java_class_name);
-    JNIEnv *env = get_env(g_jvm);
+    bool attached;
+    JNIEnv *env = get_env(g_jvm, &attached);
     jmethodID methodId = (*env)->GetStaticMethodID(env, cls, method_name,
                                                    CALL_RETURN_WITH_ARGS_METHOD);
     jobject byte_buffer_args = (*env)->NewDirectByteBuffer(env, args->data, (jlong) args->size);
     jobject byte_buffer = (*env)->CallStaticObjectMethod(env, cls, methodId, byte_buffer_args);
+
     (*env)->DeleteLocalRef(env, byte_buffer_args);
+
     ResultNative *result = new_result_native(env, byte_buffer, ResultChannelStatusOk);
+
     (*env)->DeleteLocalRef(env, byte_buffer);
+
+    if (attached) {
+        (*g_jvm)->DetachCurrentThread(g_jvm);
+    }
+
     return result;
 }
 
@@ -343,12 +333,18 @@ FFI_PLUGIN_EXPORT void
 flutter_result_channel_call_static_void_async(const char *java_class_name, const char *method_name,
                                               Callback callback) {
     jclass cls = hashmap_get(g_map, java_class_name);
-    JNIEnv *env = get_env(g_jvm);
+    bool attached;
+    JNIEnv *env = get_env(g_jvm, &attached);
     jmethodID methodId = (*env)->GetStaticMethodID(env, cls, method_name, CALL_ASYNC_METHOD);
     jobject result_channel = (*env)->NewObject(env, g_resultChannel, g_constructorResultChannel,
                                                (jlong) callback);
+
     (*env)->CallStaticVoidMethod(env, cls, methodId, result_channel);
     (*env)->DeleteLocalRef(env, result_channel);
+
+    if (attached) {
+        (*g_jvm)->DetachCurrentThread(g_jvm);
+    }
 }
 
 FFI_PLUGIN_EXPORT void
@@ -356,15 +352,21 @@ flutter_result_channel_call_static_void_async_with_args(const char *java_class_n
                                                         const char *method_name, Callback callback,
                                                         ResultNative *args) {
     jclass cls = hashmap_get(g_map, java_class_name);
-    JNIEnv *env = get_env(g_jvm);
+    bool attached;
+    JNIEnv *env = get_env(g_jvm, &attached);
     jmethodID methodId = (*env)->GetStaticMethodID(env, cls, method_name,
                                                    CALL_ASYNC_WITH_ARGS_METHOD);
     jobject result_channel = (*env)->NewObject(env, g_resultChannel, g_constructorResultChannel,
                                                (jlong) callback);
     jobject byte_buffer_args = (*env)->NewDirectByteBuffer(env, args->data, (jlong) args->size);
+
     (*env)->CallStaticVoidMethod(env, cls, methodId, result_channel, byte_buffer_args);
     (*env)->DeleteLocalRef(env, result_channel);
     (*env)->DeleteLocalRef(env, byte_buffer_args);
+
+    if (attached) {
+        (*g_jvm)->DetachCurrentThread(g_jvm);
+    }
 }
 
 FFI_PLUGIN_EXPORT void flutter_result_channel_free_pointer(void *pointer) {
@@ -375,8 +377,7 @@ FFI_PLUGIN_EXPORT void flutter_result_channel_free_pointer(void *pointer) {
 
 JNIEXPORT void JNICALL
 Java_dev_jonathanvegasp_result_1channel_ResultChannel_success(JNIEnv *env, jclass cls,
-                                                              jlong callback_ptr,
-                                                              jobject value) {
+                                                              jlong callback_ptr, jobject value) {
 
     ResultNative *instance = new_result_native(env, value, ResultChannelStatusOk);
     Callback callback = (Callback) callback_ptr;
@@ -385,8 +386,7 @@ Java_dev_jonathanvegasp_result_1channel_ResultChannel_success(JNIEnv *env, jclas
 
 JNIEXPORT void JNICALL
 Java_dev_jonathanvegasp_result_1channel_ResultChannel_failure(JNIEnv *env, jclass cls,
-                                                              jlong callback_ptr,
-                                                              jobject value) {
+                                                              jlong callback_ptr, jobject value) {
     ResultNative *instance = new_result_native(env, value, ResultChannelStatusError);
     Callback callback = (Callback) callback_ptr;
     callback(instance);

@@ -3,14 +3,15 @@ package dev.jonathanvegasp.result_channel
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class BinaryWriter : Writer {
+internal class BinaryWriter {
     companion object {
         private const val INITIAL_SIZE = 1024
         private val ORDER = ByteOrder.nativeOrder()
+        private val ZERO_BUFFER = ByteArray(8)
     }
 
     private var buffer = ByteBuffer.allocateDirect(INITIAL_SIZE).order(ORDER)
-    private var zeroBuffer = ByteArray(8)
+
 
     private fun growBufferIfNeeded(size: Int) {
         val buffer = buffer
@@ -46,51 +47,45 @@ class BinaryWriter : Writer {
 
         growBufferIfNeeded(size)
 
-        buffer.put(zeroBuffer, 0, size)
+        buffer.put(ZERO_BUFFER, 0, size)
     }
 
-    override fun byte(value: Byte) {
+    fun putByte(value: Byte) {
         growBufferIfNeeded(Byte.SIZE_BYTES)
         buffer.put(value)
     }
 
-    override fun char(value: Char) {
+    fun putChar(value: Char) {
         addPaddingIfNeeded(Char.SIZE_BYTES)
         growBufferIfNeeded(Char.SIZE_BYTES)
         buffer.putChar(value)
     }
 
-    override fun int(value: Int) {
+    fun putInt(value: Int) {
         addPaddingIfNeeded(Int.SIZE_BYTES)
         growBufferIfNeeded(Int.SIZE_BYTES)
         buffer.putInt(value)
     }
 
-    override fun long(value: Long) {
+    fun putLong(value: Long) {
         addPaddingIfNeeded(Long.SIZE_BYTES)
         growBufferIfNeeded(Long.SIZE_BYTES)
         buffer.putLong(value)
     }
 
-    override fun float(value: Float) {
-        addPaddingIfNeeded(Float.SIZE_BYTES)
-        growBufferIfNeeded(Float.SIZE_BYTES)
-        buffer.putFloat(value)
-    }
-
-    override fun double(value: Double) {
+    fun putDouble(value: Double) {
         addPaddingIfNeeded(Double.SIZE_BYTES)
         growBufferIfNeeded(Double.SIZE_BYTES)
         buffer.putDouble(value)
     }
 
-    override fun byteArray(value: ByteArray) {
+    fun putByteArray(value: ByteArray) {
         val size = value.size
         growBufferIfNeeded(size)
         buffer.put(value)
     }
 
-    override fun intArray(value: IntArray) {
+    fun putIntArray(value: IntArray) {
         val size = value.size shl 2;
         addPaddingIfNeeded(Int.SIZE_BYTES)
         growBufferIfNeeded(size)
@@ -99,7 +94,7 @@ class BinaryWriter : Writer {
         buffer.position(buffer.position() + size)
     }
 
-    override fun longArray(value: LongArray) {
+    fun putLongArray(value: LongArray) {
         val size = value.size shl 3;
         addPaddingIfNeeded(Long.SIZE_BYTES)
         growBufferIfNeeded(size)
@@ -108,7 +103,7 @@ class BinaryWriter : Writer {
         buffer.position(buffer.position() + size)
     }
 
-    override fun floatArray(value: FloatArray) {
+    fun putFloatArray(value: FloatArray) {
         val size = value.size shl 2
         addPaddingIfNeeded(Float.SIZE_BYTES)
         growBufferIfNeeded(size)
@@ -117,7 +112,7 @@ class BinaryWriter : Writer {
         buffer.position(buffer.position() + size)
     }
 
-    override fun doubleArray(value: DoubleArray) {
+    fun putDoubleArray(value: DoubleArray) {
         val size = value.size shl 3
         addPaddingIfNeeded(Double.SIZE_BYTES)
         growBufferIfNeeded(size)
@@ -126,7 +121,7 @@ class BinaryWriter : Writer {
         buffer.position(buffer.position() + size)
     }
 
-    override fun toByteBuffer(): ByteBuffer {
+    fun toByteBuffer(): ByteBuffer {
         val buffer = buffer
         val offset = buffer.position()
         buffer.position(0)

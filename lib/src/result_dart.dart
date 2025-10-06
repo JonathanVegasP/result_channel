@@ -20,12 +20,8 @@ final class ResultDart {
 
   bool get isError => status == ResultChannelStatus.error;
 
-  bool get hasData => data != null;
-
   Pointer<ResultNative> toNative() {
-    final serializer = BinarySerializer();
-
-    final bytes = serializer.serialize(data);
+    final bytes = BinarySerializer.serialize(data);
 
     final length = bytes.length;
 

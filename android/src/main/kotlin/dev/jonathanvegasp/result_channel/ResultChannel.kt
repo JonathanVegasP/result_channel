@@ -12,25 +12,13 @@ class ResultChannel @Keep constructor(private val callbackPtr: Long) {
         @Keep
         @JvmStatic
         external fun failure(callbackPtr: Long, value: ByteBuffer)
-
-        @JvmStatic
-        fun serialize(value: Any?) : ByteBuffer {
-            return BinarySerializer().serialize(value)
-        }
-
-        @JvmStatic
-        fun deserialize(value: ByteBuffer) : Any? {
-            return BinarySerializer().deserialize(value)
-        }
     }
 
     fun success(value: Any?) {
-        val serializer = BinarySerializer()
-        success(callbackPtr, serializer.serialize(value))
+        success(callbackPtr, BinarySerializer.serialize(value))
     }
 
     fun failure(value: Any?) {
-        val serializer = BinarySerializer()
-        failure(callbackPtr, serializer.serialize(value))
+        failure(callbackPtr, BinarySerializer.serialize(value))
     }
 }

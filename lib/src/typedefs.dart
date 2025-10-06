@@ -7,6 +7,8 @@ import 'result_native.dart';
 
 typedef CallbackNative = Void Function(Pointer<ResultNative>);
 
+typedef CallbackNativePointer = Pointer<NativeFunction<CallbackNative>>;
+
 typedef RegisterClassNative = Void Function(Pointer<Utf8> javaClassName);
 
 typedef RegisterClassDart = void Function(Pointer<Utf8> javaClassName);
@@ -61,21 +63,21 @@ typedef CallStaticVoidAsyncNative =
     Void Function(
       Pointer<Utf8> javaClassName,
       Pointer<Utf8> methodName,
-      Pointer<NativeFunction<CallbackNative>> callback,
+      CallbackNativePointer callback,
     );
 
 typedef CallStaticVoidAsyncDart =
     void Function(
       Pointer<Utf8> javaClassName,
       Pointer<Utf8> methodName,
-      Pointer<NativeFunction<CallbackNative>> callback,
+      CallbackNativePointer callback,
     );
 
 typedef CallStaticVoidAsyncWithArgsNative =
     Void Function(
       Pointer<Utf8> javaClassName,
       Pointer<Utf8> methodName,
-      Pointer<NativeFunction<CallbackNative>> callback,
+      CallbackNativePointer callback,
       Pointer<ResultNative> args,
     );
 
@@ -83,7 +85,7 @@ typedef CallStaticVoidAsyncWithArgsDart =
     void Function(
       Pointer<Utf8> javaClassName,
       Pointer<Utf8> methodName,
-      Pointer<NativeFunction<CallbackNative>> callback,
+      CallbackNativePointer callback,
       Pointer<ResultNative> args,
     );
 

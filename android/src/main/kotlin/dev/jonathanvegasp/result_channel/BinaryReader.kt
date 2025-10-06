@@ -1,54 +1,48 @@
 package dev.jonathanvegasp.result_channel
 
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
-class BinaryReader(private val buffer: ByteBuffer) : Reader {
+internal class BinaryReader(buffer: ByteBuffer) {
+    private val buffer = buffer.order(ByteOrder.nativeOrder())
+
     private fun readPadding(alignment: Int) {
         val align = alignment - 1
 
         buffer.position((buffer.position() + align) and align.inv())
     }
 
-    override fun byte(): Byte {
+    fun getByte(): Byte {
         return buffer.get()
     }
 
-    override fun char(): Char {
+    fun getChar(): Char {
         readPadding(Char.SIZE_BYTES)
         return buffer.getChar()
     }
 
-    override fun int(): Int {
+    fun getInt(): Int {
         readPadding(Int.SIZE_BYTES)
         return buffer.getInt()
     }
 
-    override fun long(): Long {
+    fun getLong(): Long {
         readPadding(Long.SIZE_BYTES)
         return buffer.getLong()
     }
 
-    override fun float(): Float {
-        readPadding(Float.SIZE_BYTES)
-        return buffer.getFloat()
-    }
-
-    override fun double(): Double {
+    fun getDouble(): Double {
         readPadding(Double.SIZE_BYTES)
         return buffer.getDouble()
     }
 
-    override fun string(size: Int): String {
-        return String(byteArray(size), Charsets.UTF_8)
-    }
-
-    override fun byteArray(size: Int): ByteArray {
+    fun getByteArray(size: Int): ByteArray {
         val bytes = ByteArray(size)
         buffer[bytes]
         return bytes
     }
 
-    override fun intArray(size: Int): IntArray {
+    fun getIntArray(size: Int): IntArray {
         readPadding(Int.SIZE_BYTES)
         val array = IntArray(size)
         val buffer = buffer
@@ -57,7 +51,7 @@ class BinaryReader(private val buffer: ByteBuffer) : Reader {
         return array
     }
 
-    override fun longArray(size: Int): LongArray {
+    fun getLongArray(size: Int): LongArray {
         readPadding(Long.SIZE_BYTES)
         val array = LongArray(size)
         val buffer = buffer
@@ -66,7 +60,7 @@ class BinaryReader(private val buffer: ByteBuffer) : Reader {
         return array
     }
 
-    override fun floatArray(size: Int): FloatArray {
+    fun getFloatArray(size: Int): FloatArray {
         readPadding(Float.SIZE_BYTES)
         val array = FloatArray(size)
         val buffer = buffer
@@ -75,7 +69,7 @@ class BinaryReader(private val buffer: ByteBuffer) : Reader {
         return array
     }
 
-    override fun doubleArray(size: Int): DoubleArray {
+    fun getDoubleArray(size: Int): DoubleArray {
         readPadding(Double.SIZE_BYTES)
         val array = DoubleArray(size)
         val buffer = buffer
